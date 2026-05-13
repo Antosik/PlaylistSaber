@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 
-import { getAllMaps, getMapsFrom, mergeRankedMaps } from '../src/lib/api/beatsaver/beatsaver.ts';
+import { getAllMaps, getMapsFrom, mergeRankedMaps } from '../src/lib/api/beatsaver';
 import { Platform, type RankedMap } from '../src/lib/types.ts';
 
 const DATA_DIR = 'static/data';

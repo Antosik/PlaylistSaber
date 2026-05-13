@@ -1,21 +1,23 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 
+	type CtaProps = {
+		disabled?: boolean;
+		onclick: () => void;
+		children: Snippet;
+		'data-testid'?: string;
+	};
+
 	let {
 		disabled = false,
 		onclick,
 		children,
-		qa = undefined,
-	}: {
-		disabled?: boolean;
-		onclick: () => void;
-		children: Snippet;
-		qa?: string;
-	} = $props();
+		...rest
+	}: CtaProps = $props();
 </script>
 
 <div class="wrap">
-	<button type="button" class="cta" {disabled} {onclick} {...qa ? { qa } : {}}>
+	<button type="button" class="cta" {...rest} {disabled} {onclick}>
 		{@render children()}
 	</button>
 </div>

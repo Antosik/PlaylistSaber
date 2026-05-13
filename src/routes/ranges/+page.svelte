@@ -1,11 +1,10 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
-
+	import { gotoRangesSearch } from '$lib/app-navigation';
 	import CtaButton from '$lib/components/CtaButton.svelte';
+	import HistorySection from '$lib/components/HistorySection.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import PlatformPicker from '$lib/components/PlatformPicker.svelte';
-	import { getHistory, removeHistoryEntry, clearHistory } from '$lib/history';
+	import { getHistory } from '$lib/history';
 	import type { HistoryEntry } from '$lib/history';
 	import { Platform, DEFAULT_PLATFORM } from '$lib/types';
 
@@ -37,8 +36,7 @@
 	);
 
 	function navigate(rangeStrs: string[]) {
-		// eslint-disable-next-line svelte/no-navigation-without-resolve -- search string follows resolved path
-		goto(`${resolve(`/ranges/${rangeStrs.join(',')}`)}?${new URLSearchParams({ platform })}`);
+		gotoRangesSearch(rangeStrs, platform);
 	}
 
 	function search() {
@@ -74,7 +72,7 @@
 				<input
 					type="number"
 					class="star-input"
-					qa="ranges-slot-{i}-min"
+					data-testid="ranges-slot-{i}-min"
 					placeholder="min"
 					min="0"
 					step="0.1"
@@ -85,7 +83,7 @@
 				<input
 					type="number"
 					class="star-input"
-					qa="ranges-slot-{i}-max"
+					data-testid="ranges-slot-{i}-max"
 					placeholder="max"
 					min="0"
 					step="0.1"
@@ -106,53 +104,18 @@
 	</div>
 </section>
 
-<CtaButton disabled={!canSearch} onclick={search} qa="ranges-generate-button">
+<CtaButton disabled={!canSearch} onclick={search} data-testid="ranges-generate-button">
 	Find Matching Songs →
 </CtaButton>
 
-{#if rangesHistory.length > 0}
-	<div qa="history-section" class="history-section">
-		<div class="history-header">
-			<span class="history-title">Recent searches</span>
-			<button
-				type="button"
-				qa="history-clear"
-				class="history-clear"
-				onclick={() => {
-					clearHistory('ranges');
-					rangesHistory = [];
-				}}>Clear</button
-			>
-		</div>
-		{#each rangesHistory as entry, i (`rg-${entry.feature}-${i}-${entry.timestamp}`)}
-			{#if entry.feature === 'ranges'}
-				<div
-					qa="history-entry"
-					class="history-entry"
-					role="button"
-					tabindex="0"
-					onclick={() => navigate(entry.ranges)}
-					onkeydown={(e) => e.key === 'Enter' && navigate(entry.ranges)}
-				>
-					<span qa="history-entry-label" class="history-label">{entry.ranges.join(', ')}</span>
-					<span qa="history-entry-timestamp" class="history-ts"
-						>{new Date(entry.timestamp).toLocaleDateString()}</span
-					>
-					<button
-						type="button"
-						qa="history-entry-remove"
-						class="history-remove"
-						onclick={(e) => {
-							e.stopPropagation();
-							removeHistoryEntry('ranges', i);
-							rangesHistory = getHistory('ranges');
-						}}>✕</button
-					>
-				</div>
-			{/if}
-		{/each}
-	</div>
-{/if}
+<HistorySection
+	bind:entries={rangesHistory}
+	feature="ranges"
+	labelFor={(e) => (e.feature === 'ranges' ? e.ranges.join(', ') : '')}
+	onActivate={(e) => {
+		if (e.feature === 'ranges') navigate(e.ranges);
+	}}
+/>
 
 <style>
 	section {
@@ -262,71 +225,5 @@
 		font-size: 13px;
 		padding: 4px 0;
 		text-align: left;
-	}
-
-	.history-section {
-		margin-top: var(--spacing-md);
-		border-radius: var(--radius-md);
-		background: var(--color-surface);
-		overflow: hidden;
-	}
-
-	.history-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 8px 14px;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-	}
-
-	.history-title {
-		font-size: 11px;
-		color: var(--color-text-muted);
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-	}
-	.history-clear {
-		font-size: 11px;
-		color: var(--color-text-muted);
-	}
-	.history-clear:hover {
-		color: var(--color-error, #e55);
-	}
-
-	.history-entry {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-sm);
-		padding: 8px 14px;
-		cursor: pointer;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-	}
-
-	.history-entry:last-child {
-		border-bottom: none;
-	}
-	.history-entry:hover {
-		background: rgba(255, 255, 255, 0.04);
-	}
-
-	.history-label {
-		flex: 1;
-		font-size: 13px;
-		color: var(--color-text);
-	}
-	.history-ts {
-		font-size: 11px;
-		color: var(--color-text-muted);
-		white-space: nowrap;
-	}
-	.history-remove {
-		font-size: 11px;
-		color: var(--color-text-muted);
-		padding: 2px 6px;
-		border-radius: 4px;
-	}
-	.history-remove:hover {
-		background: rgba(255, 255, 255, 0.08);
-		color: var(--color-error, #e55);
 	}
 </style>

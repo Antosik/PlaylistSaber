@@ -27,28 +27,3 @@ export async function fetchPagesConcurrentLimited<T>(
 	}
 	return all;
 }
-
-/**
- * Fetches pages 2..totalPages in sequential batches.
- * onProgress(loadedItems, totalItems) is called after each batch.
- */
-export async function fetchPagesBatched<T>(
-	firstPage: T[],
-	totalItems: number,
-	totalPages: number,
-	fetchPage: (page: number) => Promise<T[]>,
-	onProgress?: (loaded: number, total: number) => void,
-	batchSize = 5
-): Promise<T[]> {
-	const all = [...firstPage];
-	for (let start = 2; start <= totalPages; start += batchSize) {
-		const pages = Array.from(
-			{ length: Math.min(batchSize, totalPages - start + 1) },
-			(_, i) => start + i
-		);
-		const batches = await Promise.all(pages.map(fetchPage));
-		for (const items of batches) all.push(...items);
-		onProgress?.(all.length, totalItems);
-	}
-	return all;
-}

@@ -1,11 +1,10 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
-
+	import { gotoPpImprovement } from '$lib/app-navigation';
 	import CtaButton from '$lib/components/CtaButton.svelte';
+	import HistorySection from '$lib/components/HistorySection.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import PlatformPicker from '$lib/components/PlatformPicker.svelte';
-	import { getHistory, removeHistoryEntry, clearHistory } from '$lib/history';
+	import { getHistory } from '$lib/history';
 	import type { HistoryEntry } from '$lib/history';
 	import { Platform, DEFAULT_PLATFORM } from '$lib/types';
 	import { parsePlayerInput } from '$lib/url-parsing';
@@ -16,8 +15,7 @@
 	let ppHistory: HistoryEntry[] = $state(getHistory('pp-improver'));
 
 	function navigate(id: string) {
-		// eslint-disable-next-line svelte/no-navigation-without-resolve -- search string follows resolved path
-		goto(`${resolve(`/u/${id}`)}?${new URLSearchParams({ platform })}`);
+		gotoPpImprovement(id, platform);
 	}
 
 	function generate() {
@@ -28,15 +26,6 @@
 			return;
 		}
 		navigate(parsed.id);
-	}
-
-	function formatTs(ts: number): string {
-		const d = new Date(ts);
-		return (
-			d.toLocaleDateString() +
-			' ' +
-			d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-		);
 	}
 </script>
 
@@ -55,7 +44,7 @@
 	<label for="player-id">Player ID</label>
 	<input
 		id="player-id"
-		qa="pp-improver-player-id-input"
+		data-testid="pp-improver-player-id-input"
 		type="text"
 		placeholder="76561198… or paste your profile URL"
 		bind:value={playerId}
@@ -69,51 +58,18 @@
 	{/if}
 </section>
 
-<CtaButton disabled={!playerId.trim()} onclick={generate} qa="pp-improver-generate-button">
+<CtaButton disabled={!playerId.trim()} onclick={generate} data-testid="pp-improver-generate-button">
 	Generate PP Playlist →
 </CtaButton>
 
-{#if ppHistory.length > 0}
-	<div qa="history-section" class="history-section">
-		<div class="history-header">
-			<span class="history-title">Recent searches</span>
-			<button
-				type="button"
-				qa="history-clear"
-				class="history-clear"
-				onclick={() => {
-					clearHistory('pp-improver');
-					ppHistory = [];
-				}}>Clear</button
-			>
-		</div>
-		{#each ppHistory as entry, i (`pp-${entry.feature}-${i}-${entry.timestamp}`)}
-			{#if entry.feature === 'pp-improver'}
-				<div
-					qa="history-entry"
-					class="history-entry"
-					role="button"
-					tabindex="0"
-					onclick={() => navigate(entry.playerId)}
-					onkeydown={(e) => e.key === 'Enter' && navigate(entry.playerId)}
-				>
-					<span qa="history-entry-label" class="history-label">{entry.playerId}</span>
-					<span qa="history-entry-timestamp" class="history-ts">{formatTs(entry.timestamp)}</span>
-					<button
-						type="button"
-						qa="history-entry-remove"
-						class="history-remove"
-						onclick={(e) => {
-							e.stopPropagation();
-							removeHistoryEntry('pp-improver', i);
-							ppHistory = getHistory('pp-improver');
-						}}>✕</button
-					>
-				</div>
-			{/if}
-		{/each}
-	</div>
-{/if}
+<HistorySection
+	bind:entries={ppHistory}
+	feature="pp-improver"
+	labelFor={(e) => (e.feature === 'pp-improver' ? e.playerId : '')}
+	onActivate={(e) => {
+		if (e.feature === 'pp-improver') navigate(e.playerId);
+	}}
+/>
 
 <style>
 	section {
@@ -154,73 +110,6 @@
 		display: block;
 		margin-top: 4px;
 		font-size: 12px;
-		color: var(--color-error, #e55);
-	}
-
-	.history-section {
-		margin-top: var(--spacing-md);
-		border-radius: var(--radius-md);
-		background: var(--color-surface);
-		overflow: hidden;
-	}
-
-	.history-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 8px 14px;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-	}
-
-	.history-title {
-		font-size: 11px;
-		color: var(--color-text-muted);
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-	}
-	.history-clear {
-		font-size: 11px;
-		color: var(--color-text-muted);
-	}
-	.history-clear:hover {
-		color: var(--color-error, #e55);
-	}
-
-	.history-entry {
-		display: flex;
-		align-items: center;
-		gap: var(--spacing-sm);
-		padding: 8px 14px;
-		cursor: pointer;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-	}
-
-	.history-entry:last-child {
-		border-bottom: none;
-	}
-	.history-entry:hover {
-		background: rgba(255, 255, 255, 0.04);
-	}
-
-	.history-label {
-		flex: 1;
-		font-size: 13px;
-		color: var(--color-text);
-		font-family: monospace;
-	}
-	.history-ts {
-		font-size: 11px;
-		color: var(--color-text-muted);
-		white-space: nowrap;
-	}
-	.history-remove {
-		font-size: 11px;
-		color: var(--color-text-muted);
-		padding: 2px 6px;
-		border-radius: 4px;
-	}
-	.history-remove:hover {
-		background: rgba(255, 255, 255, 0.08);
 		color: var(--color-error, #e55);
 	}
 </style>

@@ -13,7 +13,7 @@
 	let imp = $derived(isImprovable(map) ? map : null);
 </script>
 
-<div class="row" qa="map-result-row">
+<div class="row" data-testid="map-result-row">
 	<span class="stars">★ {map.stars.toFixed(1)}</span>
 	<span class="name">{map.songName}</span>
 	<span class="diff">{map.difficulty}</span>
@@ -27,13 +27,13 @@
 	{/if}
 	<div class="map-links">
 		<a
-			qa="map-beatsaver-link"
+			data-testid="map-beatsaver-link"
 			href={getBeatSaverUrl(map.id)}
 			target="_blank"
 			rel="noopener noreferrer"
 			class="map-link">BS</a
 		>
-		<a qa="map-oneclick-link" href={getOneClickUrl(map.id)} class="map-link">↓</a>
+		<a data-testid="map-oneclick-link" href={getOneClickUrl(map.id)} class="map-link">↓</a>
 	</div>
 </div>
 

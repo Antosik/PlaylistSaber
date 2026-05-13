@@ -12,10 +12,4 @@ export default {
 	],
 	project: ['**/*.{js,ts,svelte}'],
 	tags: ['-lintignore'],
-	ignore: [
-		'src/lib/components/ErrorBanner.svelte',
-		'src/lib/components/LoadingCard.svelte',
-		'src/lib/components/ProgressBar.svelte',
-		'src/lib/index.ts',
-	],
 } satisfies KnipConfig;

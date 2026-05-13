@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 
 import { Platform } from '../../types';
 
-import { flattenBeatSaverMaps, getBeatSaverLeaderboard, mergeRankedMaps } from './beatsaver';
+import { flattenBeatSaverMaps, getBeatSaverLeaderboard, mergeRankedMaps } from './utils';
 
 const beatSaverDoc = {
 	id: '4ee15',

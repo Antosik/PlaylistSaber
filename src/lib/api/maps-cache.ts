@@ -1,9 +1,11 @@
+import { asset } from '$app/paths';
+
 import type { RankedMap } from '../types';
 import { Platform } from '../types';
 
 const DATA_URL: Record<Platform, string> = {
-	[Platform.ScoreSaber]: '/data/ss-maps.json',
-	[Platform.BeatLeader]: '/data/bl-maps.json',
+	[Platform.ScoreSaber]: asset('/data/ss-maps.json'),
+	[Platform.BeatLeader]: asset('/data/bl-maps.json'),
 };
 
 const cache = new Map<Platform, RankedMap[]>();

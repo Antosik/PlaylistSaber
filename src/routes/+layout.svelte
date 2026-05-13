@@ -23,9 +23,9 @@
 			<a class="logo" href={resolve('/')}>PlaylistSaber</a>
 			<nav>
 				{#each navLinks as link (link.href)}
-					<a href={resolve(link.href)} class:active={page.url.pathname === link.href}
-						>{link.label}</a
-					>
+					<a href={resolve(link.href)} class:active={page.url.pathname === link.href}>
+						{link.label}
+					</a>
 				{/each}
 			</nav>
 		</div>
