@@ -1,5 +1,11 @@
 <script lang="ts">
-	let { label, step, totalSteps, loaded, total }: {
+	let {
+		label,
+		step,
+		totalSteps,
+		loaded,
+		total,
+	}: {
 		label: string;
 		step: number;
 		totalSteps: number;
@@ -10,7 +16,7 @@
 	let pct = $derived(
 		loaded != null && total != null && total > 0
 			? Math.round((loaded / total) * 100)
-			: Math.round(((step - 1) / totalSteps) * 100),
+			: Math.round(((step - 1) / totalSteps) * 100)
 	);
 </script>
 
@@ -29,7 +35,11 @@
 </div>
 
 <style>
-	.wrap { display: flex; flex-direction: column; gap: 6px; }
+	.wrap {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+	}
 
 	.label-row {
 		display: flex;
@@ -38,12 +48,14 @@
 		color: var(--color-text);
 	}
 
-	.count { color: var(--color-text-muted); }
+	.count {
+		color: var(--color-text-muted);
+	}
 
 	.track {
 		height: 6px;
 		border-radius: 3px;
-		background: rgba(255,255,255,0.08);
+		background: rgba(255, 255, 255, 0.08);
 		overflow: hidden;
 	}
 

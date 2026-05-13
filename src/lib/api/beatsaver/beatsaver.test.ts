@@ -1,10 +1,8 @@
 import { describe, it, expect } from 'vitest';
+
 import { Platform } from '../../types';
-import {
-	flattenBeatSaverMaps,
-	getBeatSaverLeaderboard,
-	mergeRankedMaps,
-} from './beatsaver';
+
+import { flattenBeatSaverMaps, getBeatSaverLeaderboard, mergeRankedMaps } from './beatsaver';
 
 const beatSaverDoc = {
 	id: '4ee15',
@@ -77,18 +75,74 @@ describe('flattenBeatSaverMaps', () => {
 describe('mergeRankedMaps', () => {
 	it('adds new maps and replaces existing maps by songHash and difficulty', () => {
 		const existing = [
-			{ id: 'old', songHash: 'aaa', songName: 'Old', artist: 'A', difficulty: 'Expert', stars: 5, pp: 250 },
-			{ id: 'keep', songHash: 'bbb', songName: 'Keep', artist: 'B', difficulty: 'Hard', stars: 3, pp: 150 },
+			{
+				id: 'old',
+				songHash: 'aaa',
+				songName: 'Old',
+				artist: 'A',
+				difficulty: 'Expert',
+				stars: 5,
+				pp: 250,
+			},
+			{
+				id: 'keep',
+				songHash: 'bbb',
+				songName: 'Keep',
+				artist: 'B',
+				difficulty: 'Hard',
+				stars: 3,
+				pp: 150,
+			},
 		];
 		const delta = [
-			{ id: 'new', songHash: 'aaa', songName: 'Updated', artist: 'A', difficulty: 'Expert', stars: 6, pp: 300 },
-			{ id: 'add', songHash: 'ccc', songName: 'Added', artist: 'C', difficulty: 'ExpertPlus', stars: 9, pp: 450 },
+			{
+				id: 'new',
+				songHash: 'aaa',
+				songName: 'Updated',
+				artist: 'A',
+				difficulty: 'Expert',
+				stars: 6,
+				pp: 300,
+			},
+			{
+				id: 'add',
+				songHash: 'ccc',
+				songName: 'Added',
+				artist: 'C',
+				difficulty: 'ExpertPlus',
+				stars: 9,
+				pp: 450,
+			},
 		];
 
 		expect(mergeRankedMaps(existing, delta)).toEqual([
-			{ id: 'new', songHash: 'aaa', songName: 'Updated', artist: 'A', difficulty: 'Expert', stars: 6, pp: 300 },
-			{ id: 'keep', songHash: 'bbb', songName: 'Keep', artist: 'B', difficulty: 'Hard', stars: 3, pp: 150 },
-			{ id: 'add', songHash: 'ccc', songName: 'Added', artist: 'C', difficulty: 'ExpertPlus', stars: 9, pp: 450 },
+			{
+				id: 'new',
+				songHash: 'aaa',
+				songName: 'Updated',
+				artist: 'A',
+				difficulty: 'Expert',
+				stars: 6,
+				pp: 300,
+			},
+			{
+				id: 'keep',
+				songHash: 'bbb',
+				songName: 'Keep',
+				artist: 'B',
+				difficulty: 'Hard',
+				stars: 3,
+				pp: 150,
+			},
+			{
+				id: 'add',
+				songHash: 'ccc',
+				songName: 'Added',
+				artist: 'C',
+				difficulty: 'ExpertPlus',
+				stars: 9,
+				pp: 450,
+			},
 		]);
 	});
 });

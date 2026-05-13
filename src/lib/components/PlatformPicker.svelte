@@ -43,7 +43,10 @@
 		transition: all 0.15s;
 	}
 
-	button:hover { border-color: rgba(255,255,255,0.12); color: var(--color-text); }
+	button:hover {
+		border-color: rgba(255, 255, 255, 0.12);
+		color: var(--color-text);
+	}
 
 	button.active {
 		border-color: var(--color-accent);

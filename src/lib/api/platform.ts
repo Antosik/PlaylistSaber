@@ -1,7 +1,8 @@
-import { getSsPlayer, getSsPlayerScores } from './scoresaber';
+import { Platform } from '../types';
+
 import { getBlPlayer, getBlPlayerScores } from './beatleader';
 import { getRankedMaps } from './maps-cache';
-import { Platform } from '../types';
+import { getSsPlayer, getSsPlayerScores } from './scoresaber';
 
 export function getPlatformApi(platform: Platform) {
 	return {

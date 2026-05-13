@@ -21,7 +21,9 @@ export function getHistory(feature: HistoryEntry['feature']): HistoryEntry[] {
 function save(feature: HistoryEntry['feature'], entries: HistoryEntry[]): void {
 	try {
 		localStorage.setItem(storageKey(feature), JSON.stringify(entries));
-	} catch {}
+	} catch {
+		/* ignore storage failures */
+	}
 }
 
 export type HistoryInput =
@@ -37,22 +39,20 @@ export function addHistoryEntry(entry: HistoryInput): void {
 	switch (entry.feature) {
 		case 'pp-improver': {
 			const pid = entry.playerId;
-			filtered = existing.filter(
-				(e) => e.feature !== 'pp-improver' || e.playerId !== pid,
-			);
+			filtered = existing.filter((e) => e.feature !== 'pp-improver' || e.playerId !== pid);
 			break;
 		}
 		case 'with-friends': {
 			const ids = JSON.stringify(entry.playerIds);
 			filtered = existing.filter(
-				(e) => e.feature !== 'with-friends' || JSON.stringify(e.playerIds) !== ids,
+				(e) => e.feature !== 'with-friends' || JSON.stringify(e.playerIds) !== ids
 			);
 			break;
 		}
 		case 'ranges': {
 			const ranges = JSON.stringify(entry.ranges);
 			filtered = existing.filter(
-				(e) => e.feature !== 'ranges' || JSON.stringify(e.ranges) !== ranges,
+				(e) => e.feature !== 'ranges' || JSON.stringify(e.ranges) !== ranges
 			);
 			break;
 		}
@@ -70,5 +70,7 @@ export function removeHistoryEntry(feature: HistoryEntry['feature'], index: numb
 export function clearHistory(feature: HistoryEntry['feature']): void {
 	try {
 		localStorage.removeItem(storageKey(feature));
-	} catch {}
+	} catch {
+		/* ignore storage failures */
+	}
 }

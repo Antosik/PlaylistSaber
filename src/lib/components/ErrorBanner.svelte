@@ -22,9 +22,17 @@
 		color: var(--color-text);
 	}
 
-	.icon { color: var(--color-error); flex-shrink: 0; font-size: 13px; margin-top: 1px; }
+	.icon {
+		color: var(--color-error);
+		flex-shrink: 0;
+		font-size: 13px;
+		margin-top: 1px;
+	}
 
-	p { flex: 1; font-size: 13px; }
+	p {
+		flex: 1;
+		font-size: 13px;
+	}
 
 	button {
 		flex-shrink: 0;

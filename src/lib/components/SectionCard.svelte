@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { RankedMap, ImprovableMap, MapMode } from '$lib/types';
+
 	import MapRow from './MapRow.svelte';
 
 	let {
@@ -58,12 +59,22 @@
 		justify-content: space-between;
 		gap: var(--spacing-md);
 		padding: var(--spacing-md);
-		border-bottom: 1px solid rgba(255,255,255,0.06);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 	}
 
-	h2 { font-size: 15px; font-weight: 600; }
-	.count { color: var(--color-text-muted); font-weight: 400; }
-	.subtitle { font-size: 12px; color: var(--color-text-muted); margin-top: 2px; }
+	h2 {
+		font-size: 15px;
+		font-weight: 600;
+	}
+	.count {
+		color: var(--color-text-muted);
+		font-weight: 400;
+	}
+	.subtitle {
+		font-size: 12px;
+		color: var(--color-text-muted);
+		margin-top: 2px;
+	}
 
 	.dl-btn {
 		flex-shrink: 0;
@@ -76,9 +87,14 @@
 		white-space: nowrap;
 	}
 
-	.dl-btn:hover { background: var(--color-accent); color: #fff; }
+	.dl-btn:hover {
+		background: var(--color-accent);
+		color: #fff;
+	}
 
-	.list { overflow: hidden; }
+	.list {
+		overflow: hidden;
+	}
 
 	.show-more {
 		display: block;
@@ -87,9 +103,11 @@
 		text-align: center;
 		color: var(--color-text-muted);
 		font-size: 12px;
-		background: rgba(255,255,255,0.03);
-		border-top: 1px solid rgba(255,255,255,0.06);
+		background: rgba(255, 255, 255, 0.03);
+		border-top: 1px solid rgba(255, 255, 255, 0.06);
 	}
 
-	.show-more:hover { color: var(--color-text); }
+	.show-more:hover {
+		color: var(--color-text);
+	}
 </style>

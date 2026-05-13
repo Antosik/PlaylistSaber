@@ -16,13 +16,12 @@ export function deriveSkillRange(scores: PlayerScore[]): SkillRange | null {
 	const sorted = top50.map((s) => s.stars ?? 0).sort((a, b) => a - b);
 
 	const mid = Math.floor(sorted.length / 2);
-	const median =
-		sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+	const median = sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
 
 	const mean = sorted.reduce((s, v) => s + v, 0) / sorted.length;
 	const sigma = Math.max(
 		Math.sqrt(sorted.reduce((s, v) => s + (v - mean) ** 2, 0) / sorted.length),
-		MIN_SIGMA,
+		MIN_SIGMA
 	);
 
 	return {

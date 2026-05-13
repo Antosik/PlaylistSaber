@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+
 import { findCoveringSongs } from '$lib/domain/coverage';
 import type { RankedMap, PlayerSlot } from '$lib/types';
 
@@ -32,9 +33,7 @@ describe('findCoveringSongs - basic coverage', () => {
 	});
 
 	it('excludes a song when at least one slot has no matching difficulty', () => {
-		const maps = [
-			diff({ songHash: 'a', difficulty: 'ExpertPlus', stars: 7.0 }),
-		];
+		const maps = [diff({ songHash: 'a', difficulty: 'ExpertPlus', stars: 7.0 })];
 		// Second slot needs ≤ 3 stars - no difficulty covers it
 		const slots = [slot(6.0, null), slot(null, 3.0)];
 		const results = findCoveringSongs(maps, slots);
@@ -132,9 +131,7 @@ describe('findCoveringSongs - sorting and cap', () => {
 	});
 
 	it('caps results at 200 songs', () => {
-		const maps = Array.from({ length: 250 }, (_, i) =>
-			diff({ songHash: `song-${i}`, stars: 5.0 }),
-		);
+		const maps = Array.from({ length: 250 }, (_, i) => diff({ songHash: `song-${i}`, stars: 5.0 }));
 		const slots = [slot(null, null)];
 		const results = findCoveringSongs(maps, slots);
 		expect(results).toHaveLength(200);
@@ -142,7 +139,7 @@ describe('findCoveringSongs - sorting and cap', () => {
 
 	it('keeps the highest-starred songs when capping at 200', () => {
 		const maps = Array.from({ length: 250 }, (_, i) =>
-			diff({ songHash: `song-${i}`, stars: i * 0.1 }),
+			diff({ songHash: `song-${i}`, stars: i * 0.1 })
 		);
 		const slots = [slot(null, null)];
 		const results = findCoveringSongs(maps, slots);

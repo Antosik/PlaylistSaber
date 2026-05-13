@@ -1,7 +1,12 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 
-	let { disabled = false, onclick, children, qa = undefined }: {
+	let {
+		disabled = false,
+		onclick,
+		children,
+		qa = undefined,
+	}: {
 		disabled?: boolean;
 		onclick: () => void;
 		children: Snippet;
@@ -10,13 +15,17 @@
 </script>
 
 <div class="wrap">
-	<button type="button" class="cta" {disabled} {onclick} {...(qa ? { qa } : {})}>
+	<button type="button" class="cta" {disabled} {onclick} {...qa ? { qa } : {}}>
 		{@render children()}
 	</button>
 </div>
 
 <style>
-	.wrap { display: flex; justify-content: center; margin-top: var(--spacing-lg); }
+	.wrap {
+		display: flex;
+		justify-content: center;
+		margin-top: var(--spacing-lg);
+	}
 
 	.cta {
 		padding: 12px 28px;
@@ -28,6 +37,11 @@
 		transition: opacity 0.15s;
 	}
 
-	.cta:disabled { opacity: 0.4; cursor: not-allowed; }
-	.cta:hover:not(:disabled) { opacity: 0.9; }
+	.cta:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+	.cta:hover:not(:disabled) {
+		opacity: 0.9;
+	}
 </style>

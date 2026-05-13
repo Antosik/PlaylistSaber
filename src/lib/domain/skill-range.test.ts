@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+
 import { deriveSkillRange, RANGE_SIGMA_LOW, RANGE_SIGMA_HIGH } from '$lib/domain/skill-range';
 import type { PlayerScore } from '$lib/types';
 

@@ -1,10 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+
+	import CtaButton from '$lib/components/CtaButton.svelte';
 	import ResultsBar from '$lib/components/ResultsBar.svelte';
 	import SectionCard from '$lib/components/SectionCard.svelte';
-	import CtaButton from '$lib/components/CtaButton.svelte';
 	import { rankedMapsToBplist, downloadBplist } from '$lib/playlist';
 	import type { RankedMap, ImprovableMap } from '$lib/types';
+
 	import type { PageProps } from './$types';
 
 	let { data } = $props() as PageProps;
@@ -18,7 +21,7 @@
 
 <ResultsBar
 	info={`${data.platformLabel} · ${data.playerName}${data.skillRange ? ` · ★${data.skillRange.min.toFixed(1)}–${data.skillRange.max.toFixed(1)}` : ''}`}
-	onNewSearch={() => goto('/')}
+	onNewSearch={() => goto(resolve('/'))}
 />
 
 <div class="sections">

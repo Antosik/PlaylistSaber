@@ -1,10 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+
+	import CtaButton from '$lib/components/CtaButton.svelte';
+	import EmptyState from '$lib/components/EmptyState.svelte';
 	import ResultsBar from '$lib/components/ResultsBar.svelte';
 	import SongCoverageCard from '$lib/components/SongCoverageCard.svelte';
-	import EmptyState from '$lib/components/EmptyState.svelte';
-	import CtaButton from '$lib/components/CtaButton.svelte';
 	import { coverageToBplist, downloadBplist } from '$lib/playlist';
+
 	import type { PageProps } from './$types';
 
 	let { data } = $props() as PageProps;
@@ -15,18 +18,21 @@
 
 <ResultsBar
 	info={`${data.platformLabel} · ${data.playerCount} players`}
-	onNewSearch={() => goto('/friends')}
+	onNewSearch={() => goto(resolve('/friends'))}
 />
 
 {#if data.results.length === 0}
 	<EmptyState>
 		<p>No songs found that cover all {data.playerCount} players on {data.platformLabel}.</p>
-		<p>Your skill ranges may be too far apart for any song to bridge them. Try adding players closer in level.</p>
+		<p>
+			Your skill ranges may be too far apart for any song to bridge them. Try adding players closer
+			in level.
+		</p>
 	</EmptyState>
 {:else}
 	<p class="summary">{data.results.length} songs cover all {data.playerCount} players</p>
 	<div class="cards">
-		{#each (expanded ? data.results : data.results.slice(0, INITIAL_SHOW)) as result}
+		{#each expanded ? data.results : data.results.slice(0, INITIAL_SHOW) as result (result.songHash)}
 			<SongCoverageCard {result} slots={data.slots} ranges={data.rangeBySlotIndex} />
 		{/each}
 	</div>

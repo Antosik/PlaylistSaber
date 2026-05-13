@@ -1,15 +1,19 @@
 import { error } from '@sveltejs/kit';
-import type { PageLoad } from './$types';
+
 import { getPlatformApi } from '$lib/api/platform';
-import { deriveSkillRange } from '$lib/domain/skill-range';
 import { findCoveringSongs } from '$lib/domain/coverage';
+import { deriveSkillRange } from '$lib/domain/skill-range';
 import { addHistoryEntry } from '$lib/history';
 import { Platform, DEFAULT_PLATFORM } from '$lib/types';
 import type { PlayerSlot, SkillRange } from '$lib/types';
 
+import type { PageLoad } from './$types';
+
 export const load: PageLoad = async ({ params, url, fetch }) => {
 	const platform =
-		url.searchParams.get('platform') === Platform.BeatLeader ? Platform.BeatLeader : DEFAULT_PLATFORM;
+		url.searchParams.get('platform') === Platform.BeatLeader
+			? Platform.BeatLeader
+			: DEFAULT_PLATFORM;
 
 	const playerIds = (params.ids ?? '').split(',').filter(Boolean);
 	if (playerIds.length === 0) throw error(400, 'No player IDs');

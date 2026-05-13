@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+
 import { addHistoryEntry, getHistory, removeHistoryEntry, clearHistory } from '$lib/history';
 
 // #region localStorage mock

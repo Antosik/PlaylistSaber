@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+
 import { applySsCurve, applyBlCurve } from '$lib/domain/pp-curve';
 
 // #region ScoreSaber curve
@@ -25,7 +26,7 @@ describe('applySsCurve (ScoreSaber)', () => {
 	});
 
 	it('is monotonically increasing', () => {
-		const pts = [0, 0.6, 0.75, 0.85, 0.90, 0.95, 0.97, 0.99, 1.0];
+		const pts = [0, 0.6, 0.75, 0.85, 0.9, 0.95, 0.97, 0.99, 1.0];
 		for (let i = 1; i < pts.length; i++) {
 			expect(applySsCurve(pts[i])).toBeGreaterThan(applySsCurve(pts[i - 1]));
 		}

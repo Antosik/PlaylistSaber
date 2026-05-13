@@ -1,6 +1,8 @@
 import ky from 'ky';
+
 import type { PlayerScore } from '../../types';
 import { fetchPagesConcurrentLimited } from '../utils';
+
 import type { BlPlayerInfo, BlPlayerScore } from './types';
 
 const api = ky.extend({ prefix: 'https://api.beatleader.xyz', retry: 2, timeout: 10000 });
@@ -12,7 +14,7 @@ export async function getBlPlayer(id: string): Promise<BlPlayerInfo> {
 
 export async function getBlPlayerScores(
 	id: string,
-	onProgress?: (page: number, total: number) => void,
+	onProgress?: (page: number, total: number) => void
 ): Promise<PlayerScore[]> {
 	const count = 100;
 	const first = await api
@@ -26,10 +28,13 @@ export async function getBlPlayerScores(
 		first.data,
 		totalPages,
 		(p) =>
-			api.get(`player/${id}/scores`, { searchParams: { sortBy: 'pp', order: 'desc', count, page: p } })
+			api
+				.get(`player/${id}/scores`, {
+					searchParams: { sortBy: 'pp', order: 'desc', count, page: p },
+				})
 				.json<{ data: BlPlayerScore[] }>()
 				.then((d) => d.data),
-		onProgress,
+		onProgress
 	);
 
 	return all.map((s) => ({
@@ -40,4 +45,3 @@ export async function getBlPlayerScores(
 		stars: s.leaderboard.difficulty.stars,
 	}));
 }
-

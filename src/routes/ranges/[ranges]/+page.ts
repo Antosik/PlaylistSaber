@@ -1,14 +1,18 @@
 import { error } from '@sveltejs/kit';
-import type { PageLoad } from './$types';
+
 import { getPlatformApi } from '$lib/api/platform';
 import { findCoveringSongs } from '$lib/domain/coverage';
 import { addHistoryEntry } from '$lib/history';
 import { Platform, DEFAULT_PLATFORM } from '$lib/types';
 import type { PlayerSlot } from '$lib/types';
 
+import type { PageLoad } from './$types';
+
 export const load: PageLoad = async ({ params, url, fetch }) => {
 	const platform =
-		url.searchParams.get('platform') === Platform.BeatLeader ? Platform.BeatLeader : DEFAULT_PLATFORM;
+		url.searchParams.get('platform') === Platform.BeatLeader
+			? Platform.BeatLeader
+			: DEFAULT_PLATFORM;
 
 	const tokens = (params.ranges ?? '').split(',').filter(Boolean);
 	if (tokens.length === 0) throw error(400, 'No ranges');

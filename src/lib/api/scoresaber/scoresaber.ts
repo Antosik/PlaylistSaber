@@ -1,6 +1,8 @@
 import ky from 'ky';
+
 import type { PlayerScore } from '../../types';
 import { fetchPagesConcurrentLimited } from '../utils';
+
 import type { SsPlayerInfo, SsPlayerScore } from './types';
 import { diffName } from './utils';
 
@@ -13,7 +15,7 @@ export async function getSsPlayer(id: string): Promise<SsPlayerInfo> {
 
 export async function getSsPlayerScores(
 	id: string,
-	onProgress?: (page: number, total: number) => void,
+	onProgress?: (page: number, total: number) => void
 ): Promise<PlayerScore[]> {
 	const limit = 100;
 	const first = await api
@@ -27,10 +29,11 @@ export async function getSsPlayerScores(
 		first.playerScores,
 		totalPages,
 		(p) =>
-			api.get(`player/${id}/scores`, { searchParams: { sort: 'top', limit, page: p } })
+			api
+				.get(`player/${id}/scores`, { searchParams: { sort: 'top', limit, page: p } })
 				.json<{ playerScores: SsPlayerScore[] }>()
 				.then((d) => d.playerScores),
-		onProgress,
+		onProgress
 	);
 
 	return all.map(({ score, leaderboard }) => ({
@@ -41,4 +44,3 @@ export async function getSsPlayerScores(
 		stars: leaderboard.stars,
 	}));
 }
-

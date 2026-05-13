@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { classifyMaps } from '$lib/domain/pp-improvement';
+
 import { applyBlCurve } from '$lib/domain/pp-curve';
+import { classifyMaps } from '$lib/domain/pp-improvement';
 import { Platform, type PlayerScore, type RankedMap } from '$lib/types';
 
 const map = (overrides: Partial<RankedMap> = {}): RankedMap => ({
@@ -50,9 +51,7 @@ describe('classifyMaps - new maps section', () => {
 	});
 
 	it('caps new maps at 100', () => {
-		const maps = Array.from({ length: 150 }, (_, i) =>
-			map({ songHash: `hash${i}`, pp: 300 - i }),
-		);
+		const maps = Array.from({ length: 150 }, (_, i) => map({ songHash: `hash${i}`, pp: 300 - i }));
 		const { newMaps } = classifyMaps([], maps);
 		expect(newMaps).toHaveLength(100);
 	});
@@ -74,10 +73,7 @@ describe('classifyMaps - improvable maps section', () => {
 	});
 
 	it('excludes played maps with accuracy at or above 95%', () => {
-		const maps = [
-			map({ songHash: 'perfect', pp: 300 }),
-			map({ songHash: 'nearly', pp: 280 }),
-		];
+		const maps = [map({ songHash: 'perfect', pp: 300 }), map({ songHash: 'nearly', pp: 280 })];
 		const scores = [
 			score({ songHash: 'perfect', accuracy: 1.0, pp: 300 }),
 			score({ songHash: 'nearly', accuracy: 0.95, pp: 280 }),
@@ -97,24 +93,19 @@ describe('classifyMaps - improvable maps section', () => {
 	});
 
 	it('sorts improvable maps by potential pp gain descending', () => {
-		const maps = [
-			map({ songHash: 'small-gain', pp: 200 }),
-			map({ songHash: 'big-gain', pp: 500 }),
-		];
+		const maps = [map({ songHash: 'small-gain', pp: 200 }), map({ songHash: 'big-gain', pp: 500 })];
 		const scores = [
 			score({ songHash: 'small-gain', accuracy: 0.93, pp: 180 }),
-			score({ songHash: 'big-gain', accuracy: 0.80, pp: 300 }),
+			score({ songHash: 'big-gain', accuracy: 0.8, pp: 300 }),
 		];
 		const { improvableMaps } = classifyMaps(scores, maps);
 		expect(improvableMaps[0].songHash).toBe('big-gain');
 	});
 
 	it('caps improvable maps at 100', () => {
-		const maps = Array.from({ length: 150 }, (_, i) =>
-			map({ songHash: `hash${i}`, pp: 400 }),
-		);
+		const maps = Array.from({ length: 150 }, (_, i) => map({ songHash: `hash${i}`, pp: 400 }));
 		const scores = Array.from({ length: 150 }, (_, i) =>
-			score({ songHash: `hash${i}`, accuracy: 0.90, pp: 320 }),
+			score({ songHash: `hash${i}`, accuracy: 0.9, pp: 320 })
 		);
 		const { improvableMaps } = classifyMaps(scores, maps);
 		expect(improvableMaps).toHaveLength(100);

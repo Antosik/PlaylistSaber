@@ -1,8 +1,18 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+
 	import ProgressBar from './ProgressBar.svelte';
 
-	let { label, title = label, step, totalSteps, loaded, total, onCancel, children }: {
+	let {
+		label,
+		title = label,
+		step,
+		totalSteps,
+		loaded,
+		total,
+		onCancel,
+		children,
+	}: {
 		label: string;
 		title?: string;
 		step: number;
@@ -39,7 +49,10 @@
 		align-items: center;
 	}
 
-	.title { font-size: 14px; color: var(--color-text); }
+	.title {
+		font-size: 14px;
+		color: var(--color-text);
+	}
 
 	.cancel {
 		color: var(--color-text-muted);
@@ -48,5 +61,8 @@
 		border-radius: var(--radius-sm);
 	}
 
-	.cancel:hover { color: var(--color-text); background: rgba(255,255,255,0.06); }
+	.cancel:hover {
+		color: var(--color-text);
+		background: rgba(255, 255, 255, 0.06);
+	}
 </style>

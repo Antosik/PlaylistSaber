@@ -1,10 +1,15 @@
 <script lang="ts">
-	import '../app.css';
+	import { resolve } from '$app/paths';
 	import { navigating, page } from '$app/state';
+
+	import '../app.css';
 
 	let { children } = $props();
 
-	const navLinks = [
+	const navLinks: ReadonlyArray<{
+		href: '/' | '/friends' | '/ranges' | '/artist';
+		label: string;
+	}> = [
 		{ href: '/', label: 'PP Improve' },
 		{ href: '/friends', label: 'With Friends' },
 		{ href: '/ranges', label: 'Ranges' },
@@ -15,13 +20,12 @@
 <header>
 	<div class="content-wrap inner">
 		<div class="header-start">
-			<a class="logo" href="/">PlaylistSaber</a>
+			<a class="logo" href={resolve('/')}>PlaylistSaber</a>
 			<nav>
-				{#each navLinks as link}
-					<a
-						href={link.href}
-						class:active={page.url.pathname === link.href}
-					>{link.label}</a>
+				{#each navLinks as link (link.href)}
+					<a href={resolve(link.href)} class:active={page.url.pathname === link.href}
+						>{link.label}</a
+					>
 				{/each}
 			</nav>
 		</div>
@@ -43,7 +47,7 @@
 <style>
 	header {
 		background: var(--color-surface);
-		border-bottom: 1px solid rgba(255,255,255,0.06);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 		position: sticky;
 		top: 0;
 		z-index: 10;
@@ -89,7 +93,9 @@
 		transition: color 0.15s;
 	}
 
-	nav a:hover { color: var(--color-text); }
+	nav a:hover {
+		color: var(--color-text);
+	}
 
 	nav a.active {
 		color: var(--color-text);

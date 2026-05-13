@@ -1,10 +1,20 @@
-import { Platform, type PlayerScore, type RankedMap, type ImprovableMap, type PPImprovement } from '../types';
+import {
+	Platform,
+	type PlayerScore,
+	type RankedMap,
+	type ImprovableMap,
+	type PPImprovement,
+} from '../types';
+
 import { applySsCurve, applyBlCurve } from './pp-curve';
 import { deriveSkillRange } from './skill-range';
 
 /** Canonical difficulty key so ScoreSaber/BeatSaver/BeatLeader name variants still match ranked snapshots. */
 function difficultyMatchKey(difficulty: string): string {
-	const compact = difficulty.trim().toLowerCase().replace(/[\s_-]/g, '');
+	const compact = difficulty
+		.trim()
+		.toLowerCase()
+		.replace(/[\s_-]/g, '');
 	if (compact === 'expertplus' || compact === 'expert+') return 'expertplus';
 	if (compact === 'expert') return 'expert';
 	if (compact === 'hard') return 'hard';
@@ -30,7 +40,7 @@ function ppAtReferenceAccuracy(map: RankedMap, platform: Platform): number {
 export function classifyMaps(
 	playerScores: PlayerScore[],
 	rankedMaps: RankedMap[],
-	platform: Platform = Platform.ScoreSaber,
+	platform: Platform = Platform.ScoreSaber
 ): PPImprovement {
 	// Build set of played hash+difficulty combos
 	const played = new Map<string, PlayerScore>();
@@ -53,7 +63,12 @@ export function classifyMaps(
 		} else if (score.accuracy < 0.95) {
 			const ppAt95 = ppAtReferenceAccuracy(map, platform);
 			const potentialGain = ppAt95 - score.pp;
-			improvableMaps.push({ ...map, currentAccuracy: score.accuracy, currentPP: score.pp, potentialGain });
+			improvableMaps.push({
+				...map,
+				currentAccuracy: score.accuracy,
+				currentPP: score.pp,
+				potentialGain,
+			});
 		}
 	}
 

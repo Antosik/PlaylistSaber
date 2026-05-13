@@ -7,8 +7,16 @@
 <div class="coming-soon">Coming soon</div>
 
 <style>
-	h1 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
-	.subtitle { color: var(--color-text-muted); font-size: 13px; margin-bottom: var(--spacing-lg); }
+	h1 {
+		font-size: 24px;
+		font-weight: 700;
+		margin-bottom: 6px;
+	}
+	.subtitle {
+		color: var(--color-text-muted);
+		font-size: 13px;
+		margin-bottom: var(--spacing-lg);
+	}
 	.coming-soon {
 		padding: var(--spacing-lg);
 		background: var(--color-surface);

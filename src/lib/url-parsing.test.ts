@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+
 import { parsePlayerInput } from '$lib/url-parsing';
 
 describe('parsePlayerInput', () => {

@@ -1,6 +1,4 @@
-export type ParseResult =
-	| { type: 'resolved'; id: string }
-	| { type: 'error'; message: string };
+export type ParseResult = { type: 'resolved'; id: string } | { type: 'error'; message: string };
 
 export function parsePlayerInput(input: string): ParseResult {
 	const s = input.trim();
@@ -17,10 +15,15 @@ export function parsePlayerInput(input: string): ParseResult {
 	if (m) return { type: 'resolved', id: m[1] };
 
 	if (/^https?:\/\/steamcommunity\.com\/id\//.test(s))
-		return { type: 'error', message: 'Steam vanity URLs are not supported — use your numerical Steam ID or a ScoreSaber/BeatLeader profile URL instead.' };
+		return {
+			type: 'error',
+			message:
+				'Steam vanity URLs are not supported — use your numerical Steam ID or a ScoreSaber/BeatLeader profile URL instead.',
+		};
 
 	return {
 		type: 'error',
-		message: 'Unrecognized format. Enter a 17-digit Steam ID or a profile URL from Steam, ScoreSaber, or BeatLeader.',
+		message:
+			'Unrecognized format. Enter a 17-digit Steam ID or a profile URL from Steam, ScoreSaber, or BeatLeader.',
 	};
 }

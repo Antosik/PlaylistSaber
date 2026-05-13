@@ -1,10 +1,10 @@
 export const Platform = { ScoreSaber: 'scoresaber', BeatLeader: 'beatleader' } as const;
-export type Platform = typeof Platform[keyof typeof Platform];
+export type Platform = (typeof Platform)[keyof typeof Platform];
 
 export const DEFAULT_PLATFORM: Platform = Platform.ScoreSaber;
 
 export const MapMode = { New: 'new', Improvable: 'improvable' } as const;
-export type MapMode = typeof MapMode[keyof typeof MapMode];
+export type MapMode = (typeof MapMode)[keyof typeof MapMode];
 
 export type RankedMap = {
 	id: string;

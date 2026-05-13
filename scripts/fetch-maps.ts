@@ -1,4 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+
 import { getAllMaps, getMapsFrom, mergeRankedMaps } from '../src/lib/api/beatsaver/beatsaver.ts';
 import { Platform, type RankedMap } from '../src/lib/types.ts';
 
@@ -8,9 +9,7 @@ const OUTPUTS: Record<Platform, string> = {
 	[Platform.BeatLeader]: `${DATA_DIR}/bl-maps.json`,
 };
 
-const from = process.argv
-	.find((arg) => arg.startsWith('--from='))
-	?.slice('--from='.length);
+const from = process.argv.find((arg) => arg.startsWith('--from='))?.slice('--from='.length);
 
 mkdirSync(DATA_DIR, { recursive: true });
 
@@ -25,8 +24,12 @@ async function fetchPlatform(platform: Platform): Promise<void> {
 	console.log(from ? `Fetching ${label} maps from ${from}...` : `Fetching all ${label} maps...`);
 
 	const fetched = from
-		? await getMapsFrom(platform, from, (loaded, total) => process.stdout.write(`\r  ${loaded} / ${total}`))
-		: await getAllMaps(platform, (loaded, total) => process.stdout.write(`\r  ${loaded} / ${total}`));
+		? await getMapsFrom(platform, from, (loaded, total) =>
+				process.stdout.write(`\r  ${loaded} / ${total}`)
+			)
+		: await getAllMaps(platform, (loaded, total) =>
+				process.stdout.write(`\r  ${loaded} / ${total}`)
+			);
 
 	if (!from && fetched.length === 0) throw new Error(`${label} returned 0 maps`);
 

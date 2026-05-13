@@ -14,11 +14,9 @@
 	// Group matches by slotIndex, pick best (highest pp) per slot
 	let slotMatches = $derived(
 		slots.map((slot, i) => {
-			const m = result.matches
-				.filter((m) => m.slotIndex === i)
-				.sort((a, b) => b.pp - a.pp)[0];
+			const m = result.matches.filter((m) => m.slotIndex === i).sort((a, b) => b.pp - a.pp)[0];
 			return { slot, match: m };
-		}),
+		})
 	);
 
 	function connector(i: number): string {
@@ -31,7 +29,7 @@
 		<span class="name">{result.songName}</span>
 		<span class="artist">- {result.artist}</span>
 	</div>
-	{#each slotMatches as { slot, match }, i}
+	{#each slotMatches as { slot, match }, i (i)}
 		{#if match}
 			<div class="slot-row">
 				<span class="connector">{connector(i)}</span>
@@ -60,8 +58,13 @@
 		font-size: 14px;
 	}
 
-	.name { font-weight: 600; }
-	.artist { color: var(--color-text-muted); margin-left: 4px; }
+	.name {
+		font-weight: 600;
+	}
+	.artist {
+		color: var(--color-text-muted);
+		margin-left: 4px;
+	}
 
 	.slot-row {
 		display: flex;
@@ -71,21 +74,37 @@
 		padding: 2px 0;
 	}
 
-	.connector { color: var(--color-text-muted); font-family: monospace; width: 12px; }
+	.connector {
+		color: var(--color-text-muted);
+		font-family: monospace;
+		width: 12px;
+	}
 
-	.label { min-width: 80px; color: var(--color-text-muted); }
+	.label {
+		min-width: 80px;
+		color: var(--color-text-muted);
+	}
 
 	.range-tag {
 		font-size: 11px;
 		color: var(--color-text-muted);
-		background: rgba(255,255,255,0.06);
+		background: rgba(255, 255, 255, 0.06);
 		padding: 1px 5px;
 		border-radius: 3px;
 	}
 
-	.diff { color: var(--color-text-muted); }
+	.diff {
+		color: var(--color-text-muted);
+	}
 
-	.stars { color: var(--color-star); margin-left: auto; }
+	.stars {
+		color: var(--color-star);
+		margin-left: auto;
+	}
 
-	.pp { color: var(--color-pp); min-width: 50px; text-align: right; }
+	.pp {
+		color: var(--color-pp);
+		min-width: 50px;
+		text-align: right;
+	}
 </style>
