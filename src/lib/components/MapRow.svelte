@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { MapMode } from '$lib/types';
 	import type { RankedMap, ImprovableMap } from '$lib/types';
-	import { getLeaderboardUrl, getBeatSaverUrl, getOneClickUrl } from '$lib/map-links';
-	import type { MapPlatform } from '$lib/map-links';
+	import { getBeatSaverUrl, getOneClickUrl } from '$lib/map-links';
 
-	let { map, mode, platform = 'scoresaber' }: { map: RankedMap | ImprovableMap; mode: MapMode; platform?: MapPlatform } = $props();
+	let { map, mode }: { map: RankedMap | ImprovableMap; mode: MapMode } = $props();
 
 	function isImprovable(m: RankedMap | ImprovableMap): m is ImprovableMap {
 		return 'currentAccuracy' in m;
@@ -25,13 +24,8 @@
 		<span class="pp">{Math.round(map.pp)}pp</span>
 	{/if}
 	<div class="map-links">
-		{#if map.leaderboardId}
-			<a qa="map-leaderboard-link" href={getLeaderboardUrl(map.leaderboardId, platform)} target="_blank" rel="noopener noreferrer" class="map-link">LB</a>
-		{/if}
-		{#if map.bsKey}
-			<a qa="map-beatsaver-link" href={getBeatSaverUrl(map.bsKey)} target="_blank" rel="noopener noreferrer" class="map-link">BS</a>
-			<a qa="map-oneclick-link" href={getOneClickUrl(map.bsKey)} class="map-link">↓</a>
-		{/if}
+		<a qa="map-beatsaver-link" href={getBeatSaverUrl(map.id)} target="_blank" rel="noopener noreferrer" class="map-link">BS</a>
+		<a qa="map-oneclick-link" href={getOneClickUrl(map.id)} class="map-link">↓</a>
 	</div>
 </div>
 

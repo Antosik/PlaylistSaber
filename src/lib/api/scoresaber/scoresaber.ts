@@ -1,8 +1,8 @@
 import ky from 'ky';
-import type { PlayerScore, RankedMap } from '../../types';
-import { fetchPagesBatched, fetchPagesParallel } from '../utils';
-import type { SsLeaderboard, SsPlayerInfo, SsPlayerScore } from './types';
-import { diffName, mapBasePP } from './utils';
+import type { PlayerScore } from '../../types';
+import { fetchPagesConcurrentLimited } from '../utils';
+import type { SsPlayerInfo, SsPlayerScore } from './types';
+import { diffName } from './utils';
 
 const api = ky.extend({ prefix: 'https://scoresaber.com/api', retry: 2, timeout: 10000 });
 
@@ -23,7 +23,7 @@ export async function getSsPlayerScores(
 	const totalPages = Math.ceil(first.metadata.total / limit);
 	onProgress?.(1, totalPages);
 
-	const all = await fetchPagesParallel(
+	const all = await fetchPagesConcurrentLimited(
 		first.playerScores,
 		totalPages,
 		(p) =>
@@ -42,35 +42,3 @@ export async function getSsPlayerScores(
 	}));
 }
 
-export async function getAllSsRankedMaps(
-	onProgress?: (loaded: number, total: number) => void,
-): Promise<RankedMap[]> {
-	const first = await api
-		.get('leaderboards', { searchParams: { ranked: 'true', category: 3, sort: 0, page: 1 } })
-		.json<{ leaderboards: SsLeaderboard[]; metadata: { total: number; itemsPerPage: number } }>();
-
-	const perPage = first.metadata.itemsPerPage || 14;
-	const totalPages = Math.ceil(first.metadata.total / perPage);
-	onProgress?.(first.leaderboards.length, first.metadata.total);
-
-	const all = await fetchPagesBatched(
-		first.leaderboards,
-		first.metadata.total,
-		totalPages,
-		(p) =>
-			api.get('leaderboards', { searchParams: { ranked: 'true', category: 3, sort: 0, page: p } })
-				.json<{ leaderboards: SsLeaderboard[] }>()
-				.then((d) => d.leaderboards),
-		onProgress,
-	);
-
-	return all.map((lb) => ({
-		songHash: lb.songHash,
-		songName: lb.songName,
-		artist: lb.songAuthorName,
-		difficulty: diffName(lb),
-		stars: lb.stars,
-		pp: mapBasePP(lb),
-		leaderboardId: String(lb.id),
-	}));
-}

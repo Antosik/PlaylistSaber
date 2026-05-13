@@ -3,6 +3,7 @@ import { findCoveringSongs } from '$lib/domain/coverage';
 import type { RankedMap, PlayerSlot } from '$lib/types';
 
 const diff = (overrides: Partial<RankedMap>): RankedMap => ({
+	id: 'song-a',
 	songHash: 'song-a',
 	songName: 'Song A',
 	artist: 'Artist',

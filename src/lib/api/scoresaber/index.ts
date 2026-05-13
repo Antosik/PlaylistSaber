@@ -1,2 +1,2 @@
 export type { SsPlayerInfo } from './types';
-export { getSsPlayer, getSsPlayerScores, getAllSsRankedMaps } from './scoresaber';
+export { getSsPlayer, getSsPlayerScores } from './scoresaber';

@@ -7,14 +7,13 @@ export const MapMode = { New: 'new', Improvable: 'improvable' } as const;
 export type MapMode = typeof MapMode[keyof typeof MapMode];
 
 export type RankedMap = {
+	id: string;
 	songHash: string;
 	songName: string;
 	artist: string;
 	difficulty: string;
 	stars: number;
 	pp: number;
-	leaderboardId?: string;
-	bsKey?: string;
 };
 
 export type PlayerScore = {

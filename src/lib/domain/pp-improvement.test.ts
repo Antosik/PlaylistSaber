@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { classifyMaps } from '$lib/domain/pp-improvement';
-import type { PlayerScore, RankedMap } from '$lib/types';
+import { applyBlCurve } from '$lib/domain/pp-curve';
+import { Platform, type PlayerScore, type RankedMap } from '$lib/types';
 
 const map = (overrides: Partial<RankedMap> = {}): RankedMap => ({
+	id: 'hash1',
 	songHash: 'hash1',
 	songName: 'Test Song',
 	artist: 'Test Artist',
@@ -170,5 +172,29 @@ describe('classifyMaps - difficulty matching', () => {
 		const { newMaps, improvableMaps } = classifyMaps(scores, maps);
 		expect(newMaps.some((m) => m.difficulty === 'ExpertPlus')).toBe(true);
 		expect(improvableMaps.some((m) => m.difficulty === 'Expert')).toBe(true);
+	});
+
+	it('matches ranked map to score when difficulty labels differ (Expert+ vs ExpertPlus)', () => {
+		const maps = [map({ songHash: 'song-a', difficulty: 'ExpertPlus', pp: 300 })];
+		const scores = [score({ songHash: 'song-a', difficulty: 'Expert+', accuracy: 0.92, pp: 200 })];
+		const { improvableMaps, newMaps } = classifyMaps(scores, maps);
+		expect(improvableMaps).toHaveLength(1);
+		expect(newMaps).toHaveLength(0);
+	});
+
+	it('matches songHash case-insensitively', () => {
+		const maps = [map({ id: 'mid', songHash: 'abc123', difficulty: 'Expert', pp: 200 })];
+		const scores = [score({ songHash: 'ABC123', difficulty: 'Expert', accuracy: 0.9, pp: 150 })];
+		const { improvableMaps } = classifyMaps(scores, maps);
+		expect(improvableMaps).toHaveLength(1);
+	});
+});
+
+describe('classifyMaps - platform pp curve', () => {
+	it('uses BeatLeader reference curve for potential gain when platform is BeatLeader', () => {
+		const maps = [map({ songHash: 'a', pp: 100 })];
+		const scores = [score({ songHash: 'a', accuracy: 0.92, pp: 40 })];
+		const { improvableMaps } = classifyMaps(scores, maps, Platform.BeatLeader);
+		expect(improvableMaps[0].potentialGain).toBeCloseTo(100 * applyBlCurve(95) - 40, 5);
 	});
 });

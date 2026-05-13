@@ -11,7 +11,8 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test:unit": "vitest",
-		"test": "npm run test:unit -- --run"
+		"test": "npm run test:unit -- --run",
+		"fetch-maps": "tsx scripts/fetch-maps.ts"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.60.0",
@@ -20,6 +21,7 @@
 		"@sveltejs/vite-plugin-svelte": "^7.0.0",
 		"svelte": "^5.55.2",
 		"svelte-check": "^4.4.6",
+		"tsx": "^4.21.0",
 		"typescript": "^6.0.2",
 		"vite": "^8.0.7",
 		"vitest": "^4.1.3"

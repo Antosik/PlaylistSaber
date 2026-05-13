@@ -8,7 +8,7 @@
 	}: {
 		result: CoverageResult;
 		slots: PlayerSlot[];
-		ranges?: Map<number, SkillRange>; // slotIndex → derived range (With Friends only)
+		ranges?: Partial<Record<number, SkillRange>>; // slotIndex → derived range (With Friends only)
 	} = $props();
 
 	// Group matches by slotIndex, pick best (highest pp) per slot
@@ -36,8 +36,8 @@
 			<div class="slot-row">
 				<span class="connector">{connector(i)}</span>
 				<span class="label">{slot.label || `Slot ${i + 1}`}</span>
-				{#if ranges?.has(i)}
-					{@const r = ranges.get(i)!}
+				{#if ranges?.[i]}
+					{@const r = ranges[i]!}
 					<span class="range-tag">[★{r.min.toFixed(1)}–{r.max.toFixed(1)}]</span>
 				{/if}
 				<span class="diff">{match.difficulty}</span>

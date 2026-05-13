@@ -1,0 +1,67 @@
+name: Update ranked maps
+
+on:
+  schedule:
+    - cron: '0 0 * * 1-6'
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Fetch mode'
+        type: choice
+        options:
+          - delta
+          - full
+        default: delta
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Fetch ranked maps
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.mode }}" = "full" ]; then
+            npm run fetch-maps
+          elif [ "${{ github.event.schedule }}" = "0 0 * * 0" ]; then
+            npm run fetch-maps
+          else
+            FROM_DATE="$(date -u -d '2 days ago' +%F)"
+            npm run fetch-maps -- --from="$FROM_DATE"
+          fi
+
+      - name: Commit ranked map snapshots
+        run: |
+          git add static/data/ss-maps.json static/data/bl-maps.json
+          git diff --cached --quiet || git commit -m "chore: update ranked map snapshots"
+          git push
+
+      - name: Build
+        run: npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build
+
+      - uses: actions/deploy-pages@v4
+        id: deployment

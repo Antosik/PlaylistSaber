@@ -1,8 +1,7 @@
 import ky from 'ky';
-import type { PlayerScore, RankedMap } from '../../types';
-import { fetchPagesBatched, fetchPagesParallel } from '../utils';
-import type { BlLeaderboard, BlPlayerInfo, BlPlayerScore, BlSong, BlDifficulty } from './types';
-import { PP_PER_STAR } from './utils';
+import type { PlayerScore } from '../../types';
+import { fetchPagesConcurrentLimited } from '../utils';
+import type { BlPlayerInfo, BlPlayerScore } from './types';
 
 const api = ky.extend({ prefix: 'https://api.beatleader.xyz', retry: 2, timeout: 10000 });
 
@@ -23,7 +22,7 @@ export async function getBlPlayerScores(
 	const totalPages = Math.ceil(first.metadata.total / count);
 	onProgress?.(1, totalPages);
 
-	const all = await fetchPagesParallel(
+	const all = await fetchPagesConcurrentLimited(
 		first.data,
 		totalPages,
 		(p) =>
@@ -42,37 +41,3 @@ export async function getBlPlayerScores(
 	}));
 }
 
-export async function getAllBlRankedMaps(
-	onProgress?: (loaded: number, total: number) => void,
-): Promise<RankedMap[]> {
-	const count = 100;
-	type BlMapEntry = { id: string; song: BlSong; difficulty: BlDifficulty };
-	const first = await api
-		.get('leaderboards', { searchParams: { type: 'ranked', sortBy: 'stars', order: 'desc', count, page: 1 } })
-		.json<{ data: BlMapEntry[]; metadata: { total: number } }>();
-
-	const totalPages = Math.ceil(first.metadata.total / count);
-	onProgress?.(first.data.length, first.metadata.total);
-
-	const all = await fetchPagesBatched(
-		first.data,
-		first.metadata.total,
-		totalPages,
-		(p) =>
-			api.get('leaderboards', { searchParams: { type: 'ranked', sortBy: 'stars', order: 'desc', count, page: p } })
-				.json<{ data: BlMapEntry[] }>()
-				.then((d) => d.data),
-		onProgress,
-	);
-
-	return all.map((lb) => ({
-		songHash: lb.song.hash,
-		songName: lb.song.name,
-		artist: lb.song.author,
-		difficulty: lb.difficulty.difficultyName,
-		stars: lb.difficulty.stars,
-		pp: lb.difficulty.stars * PP_PER_STAR,
-		leaderboardId: lb.id,
-		bsKey: lb.song.id,
-	}));
-}
