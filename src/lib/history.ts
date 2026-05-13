@@ -1,6 +1,6 @@
 export type HistoryEntry =
-	| { feature: 'pp-improver'; playerId: string; timestamp: number }
-	| { feature: 'with-friends'; playerIds: string[]; timestamp: number }
+	| { feature: 'pp-improver'; playerId: string; playerName?: string; timestamp: number }
+	| { feature: 'with-friends'; playerIds: string[]; playerNames?: string[]; timestamp: number }
 	| { feature: 'ranges'; ranges: string[]; timestamp: number };
 
 function storageKey(feature: HistoryEntry['feature']): string {
@@ -27,8 +27,8 @@ function save(feature: HistoryEntry['feature'], entries: HistoryEntry[]): void {
 }
 
 export type HistoryInput =
-	| { feature: 'pp-improver'; playerId: string }
-	| { feature: 'with-friends'; playerIds: string[] }
+	| { feature: 'pp-improver'; playerId: string; playerName?: string }
+	| { feature: 'with-friends'; playerIds: string[]; playerNames?: string[] }
 	| { feature: 'ranges'; ranges: string[] };
 
 export function addHistoryEntry(entry: HistoryInput): void {
@@ -72,5 +72,26 @@ export function clearHistory(feature: HistoryEntry['feature']): void {
 		localStorage.removeItem(storageKey(feature));
 	} catch {
 		/* ignore storage failures */
+	}
+}
+
+/** At least one of `label` or `caption` should be set. `caption` is monospace in the UI. */
+export type HistoryLabelSegment = {
+	label?: string;
+	caption?: string;
+};
+
+export function historyEntryLabelSegments(entry: HistoryEntry): HistoryLabelSegment[] {
+	switch (entry.feature) {
+		case 'pp-improver':
+			return entry.playerName
+				? [{ label: entry.playerName, caption: entry.playerId }]
+				: [{ caption: entry.playerId }];
+		case 'with-friends':
+			return entry.playerIds.map((id, i) =>
+				entry.playerNames?.[i] ? { label: entry.playerNames[i], caption: id } : { caption: id }
+			);
+		case 'ranges':
+			return [{ label: entry.ranges.join(' · ') }];
 	}
 }

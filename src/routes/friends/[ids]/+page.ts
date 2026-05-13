@@ -22,12 +22,15 @@ export const load: PageLoad = async ({ params, url, fetch }) => {
 	const slots: PlayerSlot[] = [];
 	const rangeBySlotIndex: Partial<Record<number, SkillRange>> = {};
 
+	const playerNames: string[] = [];
+
 	for (let i = 0; i < playerIds.length; i++) {
-		const label = i === 0 ? 'You' : `Friend ${i}`;
-		const scores = await api.getScores(playerIds[i]);
+		const id = playerIds[i];
+		const [scores, pinfo] = await Promise.all([api.getScores(id), api.getPlayer(id)]);
+		playerNames.push(pinfo.name);
 		const skillRange = deriveSkillRange(scores);
 		if (skillRange) {
-			slots.push({ label, min: skillRange.min, max: skillRange.max });
+			slots.push({ label: pinfo.name, min: skillRange.min, max: skillRange.max });
 			rangeBySlotIndex[slots.length - 1] = skillRange;
 		}
 	}
@@ -35,7 +38,7 @@ export const load: PageLoad = async ({ params, url, fetch }) => {
 	const rankedMaps = await api.getRankedMaps(fetch);
 	const results = findCoveringSongs(rankedMaps, slots);
 
-	addHistoryEntry({ feature: 'with-friends', playerIds });
+	addHistoryEntry({ feature: 'with-friends', playerIds, playerNames });
 
 	return {
 		platformLabel: api.label,

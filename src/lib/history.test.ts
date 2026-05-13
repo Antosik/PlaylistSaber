@@ -1,6 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 
-import { addHistoryEntry, getHistory, removeHistoryEntry, clearHistory } from '$lib/history';
+import {
+	addHistoryEntry,
+	clearHistory,
+	getHistory,
+	historyEntryLabelSegments,
+	removeHistoryEntry,
+} from '$lib/history';
 
 // #region localStorage mock
 const createLocalStorageMock = () => {
@@ -111,6 +117,35 @@ describe('PP Improver history', () => {
 		const after = getHistory('pp-improver');
 		expect(after).toHaveLength(2);
 	});
+
+	it('Optional playerName is stored', () => {
+		addHistoryEntry({
+			feature: 'pp-improver',
+			playerId: '76561198082215374',
+			playerName: 'Test Player',
+		});
+		expect(getHistory('pp-improver')[0]).toMatchObject({
+			feature: 'pp-improver',
+			playerId: '76561198082215374',
+			playerName: 'Test Player',
+		});
+	});
+
+	it('Re-adding same playerId replaces playerName when provided again', () => {
+		addHistoryEntry({
+			feature: 'pp-improver',
+			playerId: '76561198082215374',
+			playerName: 'Old Name',
+		});
+		addHistoryEntry({
+			feature: 'pp-improver',
+			playerId: '76561198082215374',
+			playerName: 'New Name',
+		});
+		const h = getHistory('pp-improver');
+		expect(h).toHaveLength(1);
+		expect(h[0].feature === 'pp-improver' && h[0].playerName).toBe('New Name');
+	});
 });
 // #endregion PP Improver history
 
@@ -153,11 +188,81 @@ describe('With Friends history', () => {
 		expect(getHistory('with-friends')).toHaveLength(2);
 	});
 
+	it('Same playerIds with different playerNames still dedupe (last write wins)', () => {
+		addHistoryEntry({
+			feature: 'with-friends',
+			playerIds: ['76561198082215374', '76561198000000001'],
+			playerNames: ['A', 'B'],
+		});
+		addHistoryEntry({
+			feature: 'with-friends',
+			playerIds: ['76561198082215374', '76561198000000001'],
+			playerNames: ['A2', 'B2'],
+		});
+		const h = getHistory('with-friends');
+		expect(h).toHaveLength(1);
+		expect(h[0].feature === 'with-friends' && h[0].playerNames).toEqual(['A2', 'B2']);
+	});
+
 	it('Empty history returns empty array', () => {
 		expect(getHistory('with-friends')).toEqual([]);
 	});
 });
 // #endregion With Friends history
+
+describe('History label segments', () => {
+	it('pp-improver: label + caption', () => {
+		expect(
+			historyEntryLabelSegments({
+				feature: 'pp-improver',
+				playerId: '76561198082215374',
+				playerName: 'Alice',
+				timestamp: 0,
+			})
+		).toEqual([{ label: 'Alice', caption: '76561198082215374' }]);
+	});
+
+	it('pp-improver: id-only uses caption only', () => {
+		expect(
+			historyEntryLabelSegments({
+				feature: 'pp-improver',
+				playerId: '76561198082215374',
+				timestamp: 0,
+			})
+		).toEqual([{ caption: '76561198082215374' }]);
+	});
+
+	it('with-friends: mixes named and id-only segments', () => {
+		expect(
+			historyEntryLabelSegments({
+				feature: 'with-friends',
+				playerIds: ['a', 'b'],
+				playerNames: ['Ann'],
+				timestamp: 0,
+			})
+		).toEqual([
+			{ label: 'Ann', caption: 'a' },
+			{ caption: 'b' },
+		]);
+		expect(
+			historyEntryLabelSegments({
+				feature: 'with-friends',
+				playerIds: ['a', 'b'],
+				timestamp: 0,
+			})
+		).toEqual([{ caption: 'a' }, { caption: 'b' }]);
+	});
+
+	it('ranges: single plain segment', () => {
+		expect(
+			historyEntryLabelSegments({
+				feature: 'ranges',
+				ranges: ['1-3', '3-5'],
+				timestamp: 0,
+			})
+		).toEqual([{ label: '1-3 · 3-5' }]);
+	});
+});
 
 // #region Ranges history
 describe('Ranges history', () => {

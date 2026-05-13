@@ -27,7 +27,7 @@ export const load: PageLoad = async ({ params, url, fetch }) => {
 	const result = classifyMaps(scores, rankedMaps, platform);
 	const skillRange = deriveSkillRange(scores);
 
-	addHistoryEntry({ feature: 'pp-improver', playerId });
+	addHistoryEntry({ feature: 'pp-improver', playerId, playerName: info.name });
 
 	return {
 		playerName: info.name,

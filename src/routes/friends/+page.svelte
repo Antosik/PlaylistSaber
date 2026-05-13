@@ -9,17 +9,14 @@
 	import { Platform, DEFAULT_PLATFORM } from '$lib/types';
 	import { extractId, parsePlayerInput } from '$lib/url-parsing';
 
-	type PlayerRow = { id: string; label: string; error?: string };
+	type PlayerRow = { id: string; error?: string };
 
 	let platform: Platform = $state(DEFAULT_PLATFORM);
-	let players: PlayerRow[] = $state([
-		{ id: '', label: 'You' },
-		{ id: '', label: 'Friend 1' },
-	]);
+	let players: PlayerRow[] = $state([{ id: '' }, { id: '' }]);
 	let friendsHistory: HistoryEntry[] = $state(getHistory('with-friends'));
 
 	function addPlayer() {
-		players = [...players, { id: '', label: `Friend ${players.length}` }];
+		players = [...players, { id: '' }];
 	}
 
 	function removePlayer(i: number) {
@@ -60,12 +57,7 @@
 	<div class="players-box">
 		{#each players as player, i (`player-${i}`)}
 			<div class="player-row">
-				<input
-					type="text"
-					class="label-input"
-					placeholder={i === 0 ? 'You' : `Friend ${i}`}
-					bind:value={player.label}
-				/>
+				<span class="player-index">{i + 1}</span>
 				<div class="id-wrap" class:has-error={player.error}>
 					<input
 						type="text"
@@ -96,7 +88,6 @@
 <HistorySection
 	bind:entries={friendsHistory}
 	feature="with-friends"
-	labelFor={(e) => (e.feature === 'with-friends' ? e.playerIds.join(', ') : '')}
 	onActivate={(e) => {
 		if (e.feature === 'with-friends') navigate(e.playerIds);
 	}}
@@ -131,20 +122,16 @@
 		align-items: flex-start;
 	}
 
-	.label-input {
-		width: 110px;
+	.player-index {
 		flex-shrink: 0;
-		padding: 8px 10px;
-		border-radius: var(--radius-sm);
-		border: 1.5px solid rgba(255, 255, 255, 0.08);
-		background: var(--color-surface-2);
-		color: var(--color-text);
-		font-size: 13px;
-		outline: none;
-	}
-
-	.label-input:focus {
-		border-color: var(--color-accent);
+		width: 22px;
+		height: 34px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 12px;
+		font-variant-numeric: tabular-nums;
+		color: var(--color-text-muted);
 	}
 
 	.id-wrap {

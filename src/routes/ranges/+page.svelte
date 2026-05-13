@@ -111,7 +111,6 @@
 <HistorySection
 	bind:entries={rangesHistory}
 	feature="ranges"
-	labelFor={(e) => (e.feature === 'ranges' ? e.ranges.join(', ') : '')}
 	onActivate={(e) => {
 		if (e.feature === 'ranges') navigate(e.ranges);
 	}}

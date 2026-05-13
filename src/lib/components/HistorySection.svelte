@@ -1,17 +1,15 @@
 <script lang="ts">
 	import { formatHistoryDateTime } from '$lib/format-datetime';
-	import { clearHistory, getHistory, removeHistoryEntry } from '$lib/history';
+	import { clearHistory, getHistory, historyEntryLabelSegments, removeHistoryEntry } from '$lib/history';
 	import type { HistoryEntry } from '$lib/history';
 
 	let {
 		feature,
 		entries = $bindable(),
-		labelFor,
 		onActivate,
 	}: {
 		feature: HistoryEntry['feature'];
 		entries: HistoryEntry[];
-		labelFor: (entry: HistoryEntry) => string;
 		onActivate: (entry: HistoryEntry) => void;
 	} = $props();
 </script>
@@ -39,7 +37,24 @@
 				onclick={() => onActivate(entry)}
 				onkeydown={(e: KeyboardEvent) => e.key === 'Enter' && onActivate(entry)}
 			>
-				<span data-testid="history-entry-label" class="history-label">{labelFor(entry)}</span>
+				<div data-testid="history-entry-label" class="history-label">
+					{#each historyEntryLabelSegments(entry) as seg, idx (idx)}
+						{#if idx > 0}
+							<span class="history-between" aria-hidden="true">&nbsp;·&nbsp;</span>
+						{/if}
+						<span class="history-segment">
+							{#if seg.label}
+								<span class="history-seg-label">{seg.label}</span>
+							{/if}
+							{#if seg.caption}
+								<span
+									class="history-caption"
+									class:history-caption--solo={!seg.label}>{seg.caption}</span
+								>
+							{/if}
+						</span>
+					{/each}
+				</div>
 				<span data-testid="history-entry-timestamp" class="history-ts"
 					>{formatHistoryDateTime(entry.timestamp)}</span
 				>
@@ -107,13 +122,52 @@
 	.history-label {
 		flex: 1;
 		min-width: 0;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0 6px;
 		font-size: 13px;
 		color: var(--color-text);
-		font-family: monospace;
+		overflow: hidden;
+	}
+
+	.history-between {
+		color: var(--color-text-muted);
+		font-size: 11px;
+		user-select: none;
+	}
+
+	.history-segment {
+		display: inline-flex;
+		align-items: baseline;
+		gap: 6px;
+		min-width: 0;
+		max-width: 100%;
+	}
+
+	.history-seg-label {
+		font-weight: 500;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		min-width: 0;
 	}
+
+	.history-caption {
+		flex-shrink: 0;
+		font-size: 11px;
+		line-height: 1.2;
+		color: var(--color-text-muted);
+		font-family: ui-monospace, monospace;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.history-caption--solo {
+		font-size: 13px;
+		color: var(--color-text);
+		font-weight: 400;
+	}
+
 	.history-ts {
 		font-size: 11px;
 		color: var(--color-text-muted);

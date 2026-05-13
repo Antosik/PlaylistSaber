@@ -65,7 +65,6 @@
 <HistorySection
 	bind:entries={ppHistory}
 	feature="pp-improver"
-	labelFor={(e) => (e.feature === 'pp-improver' ? e.playerId : '')}
 	onActivate={(e) => {
 		if (e.feature === 'pp-improver') navigate(e.playerId);
 	}}
