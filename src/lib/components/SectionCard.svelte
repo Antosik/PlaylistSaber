@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { RankedMap, ImprovableMap, MapMode } from '$lib/types';
+	import type { MapPlatform } from '$lib/map-links';
 	import MapRow from './MapRow.svelte';
 
 	let {
@@ -8,12 +9,14 @@
 		maps,
 		mode,
 		onDownload,
+		platform,
 	}: {
 		title: string;
 		subtitle: string;
 		maps: (RankedMap | ImprovableMap)[];
 		mode: MapMode;
 		onDownload: () => void;
+		platform: MapPlatform;
 	} = $props();
 
 	const INITIAL_SHOW = 5;
@@ -34,7 +37,7 @@
 
 	<div class="list">
 		{#each visible as map}
-			<MapRow {map} {mode} />
+			<MapRow {map} {mode} {platform} />
 		{/each}
 	</div>
 

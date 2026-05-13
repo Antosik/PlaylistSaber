@@ -1,15 +1,16 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 
-	let { disabled = false, onclick, children }: {
+	let { disabled = false, onclick, children, qa = undefined }: {
 		disabled?: boolean;
 		onclick: () => void;
 		children: Snippet;
+		qa?: string;
 	} = $props();
 </script>
 
 <div class="wrap">
-	<button type="button" class="cta" {disabled} {onclick}>
+	<button type="button" class="cta" {disabled} {onclick} {...(qa ? { qa } : {})}>
 		{@render children()}
 	</button>
 </div>

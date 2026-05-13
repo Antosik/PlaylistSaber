@@ -1,32 +1,20 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import PlatformPicker from '$lib/components/PlatformPicker.svelte';
-	import SongCoverageCard from '$lib/components/SongCoverageCard.svelte';
-	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
-	import LoadingCard from '$lib/components/LoadingCard.svelte';
-	import ResultsBar from '$lib/components/ResultsBar.svelte';
 	import CtaButton from '$lib/components/CtaButton.svelte';
-	import EmptyState from '$lib/components/EmptyState.svelte';
-	import { getPlatformApi } from '$lib/api/platform';
-	import { findCoveringSongs } from '$lib/domain/coverage';
-	import { coverageToBplist, downloadBplist } from '$lib/playlist';
-	import { Platform } from '$lib/types';
-	import type { CoverageResult, PlayerSlot } from '$lib/types';
+	import { getHistory, removeHistoryEntry, clearHistory } from '$lib/history';
+	import type { HistoryEntry } from '$lib/history';
+	import { Platform, DEFAULT_PLATFORM } from '$lib/types';
 
 	type SlotRow = { label: string; min: string; max: string };
 
-	type View =
-		| { phase: 'input' }
-		| { phase: 'loading'; step: number; stepLabel: string; loaded?: number; total?: number; cancel: () => void }
-		| { phase: 'results'; platform: string; slotCount: number; results: CoverageResult[]; slots: PlayerSlot[] }
-		| { phase: 'error'; message: string };
-
-	let platform: Platform = $state(Platform.ScoreSaber);
+	let platform: Platform = $state(DEFAULT_PLATFORM);
 	let slotRows: SlotRow[] = $state([
 		{ label: 'You (optional)', min: '', max: '' },
 		{ label: 'Friend 1', min: '', max: '' },
 	]);
-	let view: View = $state({ phase: 'input' });
+	let rangesHistory: HistoryEntry[] = $state(getHistory('ranges'));
 
 	function addSlot() {
 		slotRows = [...slotRows, { label: `Friend ${slotRows.length}`, min: '', max: '' }];
@@ -36,17 +24,8 @@
 		slotRows = slotRows.filter((_: SlotRow, idx: number) => idx !== i);
 	}
 
-	function parseSlots(): PlayerSlot[] {
-		return slotRows.map((r) => ({
-			label: r.label || '',
-			min: r.min !== '' ? parseFloat(r.min) : null,
-			max: r.max !== '' ? parseFloat(r.max) : null,
-		}));
-	}
-
 	function hasRangeError(r: SlotRow): boolean {
-		if (r.min !== '' && r.max !== '' && parseFloat(r.min) > parseFloat(r.max)) return true;
-		return false;
+		return r.min !== '' && r.max !== '' && parseFloat(r.min) > parseFloat(r.max);
 	}
 
 	let canSearch = $derived(
@@ -55,143 +34,99 @@
 		!slotRows.some(hasRangeError),
 	);
 
-	async function search() {
-		let cancelled = false;
-		const cancel = () => { cancelled = true; view = { phase: 'input' }; };
-		const slots = parseSlots();
-
-		view = { phase: 'loading', step: 1, stepLabel: 'Fetching ranked maps…', loaded: 0, total: undefined, cancel };
-
-		try {
-			const { getRankedMaps, label } = getPlatformApi(platform);
-
-			const rankedMaps = await getRankedMaps((loaded, total) => {
-				if (!cancelled) view = { ...view as Extract<View, { phase: 'loading' }>, loaded, total };
-			});
-			if (cancelled) return;
-
-			view = { ...view as Extract<View, { phase: 'loading' }>, step: 2, stepLabel: 'Calculating song coverage…', loaded: undefined, total: undefined };
-			const results = findCoveringSongs(rankedMaps, slots);
-			if (cancelled) return;
-
-			view = { phase: 'results', platform: label, slotCount: slots.length, results, slots };
-		} catch (e: unknown) {
-			if (!cancelled) {
-				const msg = e instanceof Error ? e.message : 'Unknown error';
-				view = { phase: 'error', message: `Could not fetch ranked maps. (${msg})` };
-			}
-		}
+	function navigate(rangeStrs: string[]) {
+		goto(`/ranges/${rangeStrs.join(',')}?platform=${platform}`);
 	}
 
-	const INITIAL_SHOW = 10;
-	let expanded = $state(false);
+	function search() {
+		const rangeStrs = slotRows.map((r) => `${r.min}-${r.max}`);
+		navigate(rangeStrs);
+	}
 </script>
 
-{#if view.phase === 'input'}
-	<PageHeader
-		title="Ranges"
-		subtitle="Manually set star ranges and find songs that cover all of them. Use this when you don't have everyone's profile handy."
-	/>
+<PageHeader
+	title="Ranges"
+	subtitle="Manually set star ranges and find songs that cover all of them. Use this when you don't have everyone's profile handy."
+/>
 
-	<section>
-		<!-- svelte-ignore a11y_label_has_associated_control -->
-		<label>Platform</label>
-		<PlatformPicker bind:value={platform} />
-	</section>
+<section>
+	<!-- svelte-ignore a11y_label_has_associated_control -->
+	<label>Platform</label>
+	<PlatformPicker bind:value={platform} />
+</section>
 
-	<section>
-		<!-- svelte-ignore a11y_label_has_associated_control -->
-		<label>Star Ranges</label>
-		<div class="slots-box">
-			{#each slotRows as row, i}
-				<div class="slot-row">
-					<input
-						type="text"
-						class="label-input"
-						placeholder={i === 0 ? 'You (optional)' : `Friend ${i}`}
-						bind:value={row.label}
-					/>
-					<span class="star-icon">★</span>
-					<input
-						type="number"
-						class="star-input"
-						placeholder="min"
-						min="0"
-						step="0.1"
-						bind:value={row.min}
-						class:error={hasRangeError(row)}
-					/>
-					<span class="sep">–</span>
-					<input
-						type="number"
-						class="star-input"
-						placeholder="max"
-						min="0"
-						step="0.1"
-						bind:value={row.max}
-						class:error={hasRangeError(row)}
-					/>
-					{#if i > 0}
-						<button type="button" class="remove" onclick={() => removeSlot(i)}>✕</button>
-					{:else}
-						<span class="remove-spacer"></span>
-					{/if}
-				</div>
-				{#if hasRangeError(row)}
-					<p class="range-error">Min must be ≤ max</p>
+<section>
+	<!-- svelte-ignore a11y_label_has_associated_control -->
+	<label>Star Ranges</label>
+	<div class="slots-box">
+		{#each slotRows as row, i}
+			<div class="slot-row">
+				<input
+					type="text"
+					class="label-input"
+					placeholder={i === 0 ? 'You (optional)' : `Friend ${i}`}
+					bind:value={row.label}
+				/>
+				<span class="star-icon">★</span>
+				<input
+					type="number"
+					class="star-input"
+					qa="ranges-slot-{i}-min"
+					placeholder="min"
+					min="0"
+					step="0.1"
+					bind:value={row.min}
+					class:error={hasRangeError(row)}
+				/>
+				<span class="sep">–</span>
+				<input
+					type="number"
+					class="star-input"
+					qa="ranges-slot-{i}-max"
+					placeholder="max"
+					min="0"
+					step="0.1"
+					bind:value={row.max}
+					class:error={hasRangeError(row)}
+				/>
+				{#if i > 0}
+					<button type="button" class="remove" onclick={() => removeSlot(i)}>✕</button>
+				{:else}
+					<span class="remove-spacer"></span>
 				{/if}
-			{/each}
-			<button type="button" class="add-slot" onclick={addSlot}>+ Add range</button>
+			</div>
+			{#if hasRangeError(row)}
+				<p class="range-error">Min must be ≤ max</p>
+			{/if}
+		{/each}
+		<button type="button" class="add-slot" onclick={addSlot}>+ Add range</button>
+	</div>
+</section>
+
+<CtaButton disabled={!canSearch} onclick={search} qa="ranges-generate-button">
+	Find Matching Songs →
+</CtaButton>
+
+{#if rangesHistory.length > 0}
+	<div qa="history-section" class="history-section">
+		<div class="history-header">
+			<span class="history-title">Recent searches</span>
+			<button type="button" qa="history-clear" class="history-clear"
+				onclick={() => { clearHistory('ranges'); rangesHistory = []; }}>Clear</button>
 		</div>
-	</section>
-
-	<CtaButton disabled={!canSearch} onclick={search}>
-		Find Matching Songs →
-	</CtaButton>
-
-{:else if view.phase === 'loading'}
-	<LoadingCard
-		label={view.stepLabel}
-		step={view.step}
-		totalSteps={2}
-		loaded={view.loaded}
-		total={view.total}
-		onCancel={view.cancel}
-	/>
-
-{:else if view.phase === 'results'}
-	<ResultsBar
-		info="{view.platform} · {view.slotCount} ranges"
-		onNewSearch={() => (view = { phase: 'input' })}
-	/>
-
-	{#if view.results.length === 0}
-		<EmptyState>
-			<p>No songs found that cover all ranges on {view.platform}.</p>
-			<p>Try widening one or more star ranges.</p>
-		</EmptyState>
-	{:else}
-		<p class="summary">{view.results.length} songs cover all {view.slotCount} ranges</p>
-		<div class="cards">
-			{#each (expanded ? view.results : view.results.slice(0, INITIAL_SHOW)) as result}
-				<SongCoverageCard {result} slots={view.slots} />
-			{/each}
-		</div>
-		{#if !expanded && view.results.length > INITIAL_SHOW}
-			<button type="button" class="show-more" onclick={() => (expanded = true)}>
-				Show more - {view.results.length - INITIAL_SHOW} more songs
-			</button>
-		{/if}
-		<CtaButton onclick={() => {
-			const s = view as Extract<View, { phase: 'results' }>;
-			downloadBplist(coverageToBplist(s.results, 'Ranges'));
-		}}>
-			↓ Download Playlist ({view.results.length} songs)
-		</CtaButton>
-	{/if}
-
-{:else if view.phase === 'error'}
-	<ErrorBanner message={view.message} onRetry={() => (view = { phase: 'input' })} />
+		{#each rangesHistory as entry, i}
+			{#if entry.feature === 'ranges'}
+				<div qa="history-entry" class="history-entry" role="button" tabindex="0"
+					onclick={() => navigate(entry.ranges)}
+					onkeydown={(e) => e.key === 'Enter' && navigate(entry.ranges)}>
+					<span qa="history-entry-label" class="history-label">{entry.ranges.join(', ')}</span>
+					<span qa="history-entry-timestamp" class="history-ts">{new Date(entry.timestamp).toLocaleDateString()}</span>
+					<button type="button" qa="history-entry-remove" class="history-remove"
+						onclick={(e) => { e.stopPropagation(); removeHistoryEntry('ranges', i); rangesHistory = getHistory('ranges'); }}>✕</button>
+				</div>
+			{/if}
+		{/each}
+	</div>
 {/if}
 
 <style>
@@ -269,20 +204,39 @@
 
 	.add-slot { color: var(--color-accent); font-size: 13px; padding: 4px 0; text-align: left; }
 
-	.summary { color: var(--color-text-muted); font-size: 13px; margin-bottom: var(--spacing-md); }
-	.cards { display: flex; flex-direction: column; gap: var(--spacing-sm); }
-
-	.show-more {
-		display: block;
-		width: 100%;
-		margin-top: var(--spacing-sm);
-		padding: 10px;
-		text-align: center;
-		color: var(--color-text-muted);
-		font-size: 13px;
-		background: var(--color-surface);
+	.history-section {
+		margin-top: var(--spacing-md);
 		border-radius: var(--radius-md);
+		background: var(--color-surface);
+		overflow: hidden;
 	}
 
-	.show-more:hover { color: var(--color-text); }
+	.history-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 8px 14px;
+		border-bottom: 1px solid rgba(255,255,255,0.06);
+	}
+
+	.history-title { font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+	.history-clear { font-size: 11px; color: var(--color-text-muted); }
+	.history-clear:hover { color: var(--color-error, #e55); }
+
+	.history-entry {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+		padding: 8px 14px;
+		cursor: pointer;
+		border-bottom: 1px solid rgba(255,255,255,0.04);
+	}
+
+	.history-entry:last-child { border-bottom: none; }
+	.history-entry:hover { background: rgba(255,255,255,0.04); }
+
+	.history-label { flex: 1; font-size: 13px; color: var(--color-text); }
+	.history-ts { font-size: 11px; color: var(--color-text-muted); white-space: nowrap; }
+	.history-remove { font-size: 11px; color: var(--color-text-muted); padding: 2px 6px; border-radius: 4px; }
+	.history-remove:hover { background: rgba(255,255,255,0.08); color: var(--color-error, #e55); }
 </style>

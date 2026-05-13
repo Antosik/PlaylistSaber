@@ -71,5 +71,6 @@ export async function getAllSsRankedMaps(
 		difficulty: diffName(lb),
 		stars: lb.stars,
 		pp: mapBasePP(lb),
+		leaderboardId: String(lb.id),
 	}));
 }

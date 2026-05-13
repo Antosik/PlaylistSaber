@@ -6,6 +6,7 @@ export interface BlDifficulty {
 }
 
 export interface BlSong {
+	id: string;
 	hash: string;
 	name: string;
 	author: string;

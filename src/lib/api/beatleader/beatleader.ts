@@ -72,5 +72,7 @@ export async function getAllBlRankedMaps(
 		difficulty: lb.difficulty.difficultyName,
 		stars: lb.difficulty.stars,
 		pp: lb.difficulty.stars * PP_PER_STAR,
+		leaderboardId: lb.id,
+		bsKey: lb.song.id,
 	}));
 }
