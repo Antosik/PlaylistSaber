@@ -50,36 +50,38 @@
 />
 
 <section>
-	<!-- svelte-ignore a11y_label_has_associated_control -->
-	<label>Platform</label>
-	<PlatformPicker bind:value={platform} />
+	<fieldset class="form-field-group">
+		<legend>Platform</legend>
+		<PlatformPicker bind:value={platform} />
+	</fieldset>
 </section>
 
 <section>
-	<!-- svelte-ignore a11y_label_has_associated_control -->
-	<label>Players</label>
-	<div class="players-box">
-		{#each players as player, i (`player-${i}`)}
-			<div class="player-row">
-				<span class="player-index">{i + 1}</span>
-				<div class="id-wrap">
-					<PlayerProfileUrlField
-						variant="compact"
-						bind:value={player.id}
-						error={profileInputValidationMessage(player.id)}
-						dataTestId={`with-friends-player-id-input-${i}`}
-						ariaLabel={`Player ${i + 1} profile URL or ID`}
-					/>
+	<fieldset class="form-field-group">
+		<legend>Players</legend>
+		<div class="players-box">
+			{#each players as player, i (`player-${i}`)}
+				<div class="player-row">
+					<span class="player-index">{i + 1}</span>
+					<div class="id-wrap">
+						<PlayerProfileUrlField
+							variant="compact"
+							bind:value={player.id}
+							error={profileInputValidationMessage(player.id)}
+							dataTestId={`with-friends-player-id-input-${i}`}
+							ariaLabel={`Player ${i + 1} profile URL or ID`}
+						/>
+					</div>
+					{#if i > 0}
+						<button type="button" class="remove" onclick={() => removePlayer(i)}>✕</button>
+					{:else}
+						<span class="remove-spacer"></span>
+					{/if}
 				</div>
-				{#if i > 0}
-					<button type="button" class="remove" onclick={() => removePlayer(i)}>✕</button>
-				{:else}
-					<span class="remove-spacer"></span>
-				{/if}
-			</div>
-		{/each}
-		<button type="button" class="add-player" onclick={addPlayer}>+ Add player</button>
-	</div>
+			{/each}
+			<button type="button" class="add-player" onclick={addPlayer}>+ Add player</button>
+		</div>
+	</fieldset>
 </section>
 
 <CtaButton disabled={!canSearch} onclick={search} data-testid="with-friends-generate-button">
@@ -97,15 +99,6 @@
 <style>
 	section {
 		margin-bottom: var(--spacing-md);
-	}
-
-	label {
-		display: block;
-		font-size: 12px;
-		color: var(--color-text-muted);
-		margin-bottom: 6px;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
 	}
 
 	.players-box {

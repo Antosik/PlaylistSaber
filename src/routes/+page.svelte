@@ -35,9 +35,10 @@
 />
 
 <section>
-	<!-- svelte-ignore a11y_label_has_associated_control -->
-	<label>Platform</label>
-	<PlatformPicker bind:value={platform} />
+	<fieldset class="form-field-group">
+		<legend>Platform</legend>
+		<PlatformPicker bind:value={platform} />
+	</fieldset>
 </section>
 
 <section>
@@ -65,15 +66,6 @@
 <style>
 	section {
 		margin-bottom: var(--spacing-md);
-	}
-
-	label {
-		display: block;
-		font-size: 12px;
-		color: var(--color-text-muted);
-		margin-bottom: 6px;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
 	}
 
 </style>

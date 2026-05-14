@@ -51,57 +51,59 @@
 />
 
 <section>
-	<!-- svelte-ignore a11y_label_has_associated_control -->
-	<label>Platform</label>
-	<PlatformPicker bind:value={platform} />
+	<fieldset class="form-field-group">
+		<legend>Platform</legend>
+		<PlatformPicker bind:value={platform} />
+	</fieldset>
 </section>
 
 <section>
-	<!-- svelte-ignore a11y_label_has_associated_control -->
-	<label>Star Ranges</label>
-	<div class="slots-box">
-		{#each slotRows as row, i (`slot-${i}`)}
-			<div class="slot-row">
-				<input
-					type="text"
-					class="label-input"
-					placeholder={i === 0 ? 'You (optional)' : `Friend ${i}`}
-					bind:value={row.label}
-				/>
-				<span class="star-icon">★</span>
-				<input
-					type="number"
-					class="star-input"
-					data-testid="ranges-slot-{i}-min"
-					placeholder="min"
-					min="0"
-					step="0.1"
-					bind:value={row.min}
-					class:error={hasRangeError(row)}
-				/>
-				<span class="sep">–</span>
-				<input
-					type="number"
-					class="star-input"
-					data-testid="ranges-slot-{i}-max"
-					placeholder="max"
-					min="0"
-					step="0.1"
-					bind:value={row.max}
-					class:error={hasRangeError(row)}
-				/>
-				{#if i > 0}
-					<button type="button" class="remove" onclick={() => removeSlot(i)}>✕</button>
-				{:else}
-					<span class="remove-spacer"></span>
+	<fieldset class="form-field-group">
+		<legend>Star Ranges</legend>
+		<div class="slots-box">
+			{#each slotRows as row, i (`slot-${i}`)}
+				<div class="slot-row">
+					<input
+						type="text"
+						class="label-input"
+						placeholder={i === 0 ? 'You (optional)' : `Friend ${i}`}
+						bind:value={row.label}
+					/>
+					<span class="star-icon">★</span>
+					<input
+						type="number"
+						class="star-input"
+						data-testid="ranges-slot-{i}-min"
+						placeholder="min"
+						min="0"
+						step="0.1"
+						bind:value={row.min}
+						class:error={hasRangeError(row)}
+					/>
+					<span class="sep">–</span>
+					<input
+						type="number"
+						class="star-input"
+						data-testid="ranges-slot-{i}-max"
+						placeholder="max"
+						min="0"
+						step="0.1"
+						bind:value={row.max}
+						class:error={hasRangeError(row)}
+					/>
+					{#if i > 0}
+						<button type="button" class="remove" onclick={() => removeSlot(i)}>✕</button>
+					{:else}
+						<span class="remove-spacer"></span>
+					{/if}
+				</div>
+				{#if hasRangeError(row)}
+					<p class="range-error">Min must be ≤ max</p>
 				{/if}
-			</div>
-			{#if hasRangeError(row)}
-				<p class="range-error">Min must be ≤ max</p>
-			{/if}
-		{/each}
-		<button type="button" class="add-slot" onclick={addSlot}>+ Add range</button>
-	</div>
+			{/each}
+			<button type="button" class="add-slot" onclick={addSlot}>+ Add range</button>
+		</div>
+	</fieldset>
 </section>
 
 <CtaButton disabled={!canSearch} onclick={search} data-testid="ranges-generate-button">
@@ -119,15 +121,6 @@
 <style>
 	section {
 		margin-bottom: var(--spacing-md);
-	}
-
-	label {
-		display: block;
-		font-size: 12px;
-		color: var(--color-text-muted);
-		margin-bottom: 6px;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
 	}
 
 	.slots-box {

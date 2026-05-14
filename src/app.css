@@ -47,6 +47,22 @@ button {
 	font: inherit;
 }
 
+fieldset.form-field-group {
+	border: none;
+	margin: 0;
+	padding: 0;
+	min-width: 0;
+}
+
+fieldset.form-field-group legend {
+	display: block;
+	font-size: 12px;
+	color: var(--color-text-muted);
+	margin-bottom: 6px;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
 button {
 	cursor: pointer;
 	border: none;

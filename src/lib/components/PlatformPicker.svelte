@@ -1,26 +1,42 @@
 <script lang="ts">
 	import { Platform } from '$lib/types';
 
-	let { value = $bindable<Platform>(Platform.ScoreSaber) } = $props();
+	let {
+		value = $bindable<Platform>(Platform.ScoreSaber),
+		groupName = 'playlist-saber-platform',
+	}: {
+		value?: Platform;
+		groupName?: string;
+	} = $props();
 </script>
 
 <div class="picker">
-	<button
-		type="button"
-		class:active={value === Platform.ScoreSaber}
-		onclick={() => (value = Platform.ScoreSaber)}
-	>
-		<span class="dot"></span>
-		ScoreSaber
-	</button>
-	<button
-		type="button"
-		class:active={value === Platform.BeatLeader}
-		onclick={() => (value = Platform.BeatLeader)}
-	>
-		<span class="dot"></span>
-		BeatLeader
-	</button>
+	<label class="option" class:active={value === Platform.ScoreSaber}>
+		<input
+			type="radio"
+			class="sr-input"
+			name={groupName}
+			value={Platform.ScoreSaber}
+			bind:group={value}
+		/>
+		<span class="option-body">
+			<span class="dot" aria-hidden="true"></span>
+			ScoreSaber
+		</span>
+	</label>
+	<label class="option" class:active={value === Platform.BeatLeader}>
+		<input
+			type="radio"
+			class="sr-input"
+			name={groupName}
+			value={Platform.BeatLeader}
+			bind:group={value}
+		/>
+		<span class="option-body">
+			<span class="dot" aria-hidden="true"></span>
+			BeatLeader
+		</span>
+	</label>
 </div>
 
 <style>
@@ -29,8 +45,26 @@
 		gap: var(--spacing-sm);
 	}
 
-	button {
+	.option {
 		flex: 1;
+		cursor: pointer;
+		display: block;
+	}
+
+	.sr-input {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		clip-path: inset(50%);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	.option-body {
 		display: flex;
 		align-items: center;
 		gap: 8px;
@@ -40,18 +74,26 @@
 		background: var(--color-surface-2);
 		color: var(--color-text-muted);
 		font-size: 14px;
-		transition: all 0.15s;
+		transition:
+			border-color 0.15s,
+			color 0.15s,
+			background 0.15s;
 	}
 
-	button:hover {
+	.option:hover .option-body {
 		border-color: rgba(255, 255, 255, 0.12);
 		color: var(--color-text);
 	}
 
-	button.active {
+	.option.active .option-body {
 		border-color: var(--color-accent);
 		color: var(--color-text);
 		background: var(--color-accent-dim);
+	}
+
+	.sr-input:focus-visible + .option-body {
+		outline: 2px solid var(--color-accent);
+		outline-offset: 2px;
 	}
 
 	.dot {
@@ -62,7 +104,7 @@
 		flex-shrink: 0;
 	}
 
-	button.active .dot {
+	.option.active .dot {
 		background: var(--color-accent);
 		border-color: var(--color-accent);
 	}
