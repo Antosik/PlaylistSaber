@@ -4,12 +4,13 @@
 	import HistorySection from '$lib/components/HistorySection.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import PlatformPicker from '$lib/components/PlatformPicker.svelte';
+	import PlayerProfileUrlField from '$lib/components/PlayerProfileUrlField.svelte';
 	import { getHistory } from '$lib/history';
 	import type { HistoryEntry } from '$lib/history';
 	import { Platform, DEFAULT_PLATFORM } from '$lib/types';
-	import { extractId, parsePlayerInput } from '$lib/url-parsing';
+	import { parsePlayerInput, profileInputValidationMessage } from '$lib/url-parsing';
 
-	type PlayerRow = { id: string; error?: string };
+	type PlayerRow = { id: string };
 
 	let platform: Platform = $state(DEFAULT_PLATFORM);
 	let players: PlayerRow[] = $state([{ id: '' }, { id: '' }]);
@@ -24,7 +25,10 @@
 	}
 
 	let canSearch = $derived(
-		players.length >= 2 && players.every((p) => p.id.trim()) && !players.some((p) => p.error)
+		players.length >= 2 &&
+			players.every(
+				(p) => p.id.trim() !== '' && profileInputValidationMessage(p.id) === ''
+			)
 	);
 
 	function navigate(ids: string[]) {
@@ -32,11 +36,11 @@
 	}
 
 	function search() {
-		const ids = players.map((p) => {
-			const parsed = parsePlayerInput(p.id.trim());
-			return parsed.type === 'resolved' ? parsed.id : extractId(p.id.trim());
-		});
-		navigate(ids);
+		const parsed = players.map((p) => parsePlayerInput(p.id.trim()));
+		if (!parsed.every((r): r is { type: 'resolved'; id: string } => r.type === 'resolved')) {
+			return;
+		}
+		navigate(parsed.map((r) => r.id));
 	}
 </script>
 
@@ -58,17 +62,14 @@
 		{#each players as player, i (`player-${i}`)}
 			<div class="player-row">
 				<span class="player-index">{i + 1}</span>
-				<div class="id-wrap" class:has-error={player.error}>
-					<input
-						type="text"
-						class="id-input"
-						data-testid="with-friends-player-id-input-{i}"
-						placeholder="76561198… or profile URL"
+				<div class="id-wrap">
+					<PlayerProfileUrlField
+						variant="compact"
 						bind:value={player.id}
+						error={profileInputValidationMessage(player.id)}
+						dataTestId={`with-friends-player-id-input-${i}`}
+						ariaLabel={`Player ${i + 1} profile URL or ID`}
 					/>
-					{#if player.error}
-						<span class="inline-error">✕ {player.error}</span>
-					{/if}
 				</div>
 				{#if i > 0}
 					<button type="button" class="remove" onclick={() => removePlayer(i)}>✕</button>
@@ -137,31 +138,6 @@
 	.id-wrap {
 		flex: 1;
 		position: relative;
-	}
-
-	.id-input {
-		width: 100%;
-		padding: 8px 10px;
-		border-radius: var(--radius-sm);
-		border: 1.5px solid rgba(255, 255, 255, 0.08);
-		background: var(--color-surface-2);
-		color: var(--color-text);
-		font-size: 13px;
-		outline: none;
-	}
-
-	.id-input:focus {
-		border-color: var(--color-accent);
-	}
-	.id-wrap.has-error .id-input {
-		border-color: var(--color-error);
-	}
-
-	.inline-error {
-		font-size: 11px;
-		margin-top: 2px;
-		display: block;
-		color: var(--color-error);
 	}
 
 	.remove {

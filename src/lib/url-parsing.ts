@@ -33,3 +33,11 @@ export function parsePlayerInput(input: string): ParseResult {
 			'Unrecognized format. Enter a 17-digit Steam ID or a profile URL from Steam, ScoreSaber, or BeatLeader.',
 	};
 }
+
+/** Empty when blank or parsed OK; otherwise the same message as parsePlayerInput errors. */
+export function profileInputValidationMessage(input: string): string {
+	const t = input.trim();
+	if (!t) return '';
+	const p = parsePlayerInput(t);
+	return p.type === 'error' ? p.message : '';
+}

@@ -4,6 +4,7 @@
 	import HistorySection from '$lib/components/HistorySection.svelte';
 	import PageHeader from '$lib/components/PageHeader.svelte';
 	import PlatformPicker from '$lib/components/PlatformPicker.svelte';
+	import PlayerProfileUrlField from '$lib/components/PlayerProfileUrlField.svelte';
 	import { getHistory } from '$lib/history';
 	import type { HistoryEntry } from '$lib/history';
 	import { Platform, DEFAULT_PLATFORM } from '$lib/types';
@@ -11,21 +12,20 @@
 
 	let platform: Platform = $state(DEFAULT_PLATFORM);
 	let playerId: string = $state('');
-	let inputError: string = $state('');
 	let ppHistory: HistoryEntry[] = $state(getHistory('pp-improver'));
+
+	let trimmedId = $derived(playerId.trim());
+	let ppParsed = $derived(trimmedId === '' ? null : parsePlayerInput(trimmedId));
+	let validationError = $derived(ppParsed?.type === 'error' ? ppParsed.message : '');
+	let canGenerate = $derived(ppParsed?.type === 'resolved');
 
 	function navigate(id: string) {
 		gotoPpImprovement(id, platform);
 	}
 
 	function generate() {
-		inputError = '';
-		const parsed = parsePlayerInput(playerId.trim());
-		if (parsed.type === 'error') {
-			inputError = parsed.message;
-			return;
-		}
-		navigate(parsed.id);
+		if (!ppParsed || ppParsed.type !== 'resolved') return;
+		navigate(ppParsed.id);
 	}
 </script>
 
@@ -41,24 +41,16 @@
 </section>
 
 <section>
-	<label for="player-id">Player ID</label>
-	<input
-		id="player-id"
-		data-testid="pp-improver-player-id-input"
-		type="text"
-		placeholder="76561198… or paste your profile URL"
+	<PlayerProfileUrlField
+		label="Player ID"
+		inputId="player-id"
 		bind:value={playerId}
-		class:has-error={!!inputError}
-		oninput={() => {
-			inputError = '';
-		}}
+		error={validationError}
+		dataTestId="pp-improver-player-id-input"
 	/>
-	{#if inputError}
-		<span class="input-error">{inputError}</span>
-	{/if}
 </section>
 
-<CtaButton disabled={!playerId.trim()} onclick={generate} data-testid="pp-improver-generate-button">
+<CtaButton disabled={!canGenerate} onclick={generate} data-testid="pp-improver-generate-button">
 	Generate PP Playlist →
 </CtaButton>
 
@@ -84,31 +76,4 @@
 		letter-spacing: 0.05em;
 	}
 
-	input {
-		width: 100%;
-		padding: 10px 14px;
-		border-radius: var(--radius-md);
-		border: 1.5px solid rgba(255, 255, 255, 0.1);
-		background: var(--color-surface);
-		color: var(--color-text);
-		font-size: 14px;
-		outline: none;
-	}
-
-	input:focus {
-		border-color: var(--color-accent);
-	}
-	input::placeholder {
-		color: var(--color-text-muted);
-	}
-	input.has-error {
-		border-color: var(--color-error, #e55);
-	}
-
-	.input-error {
-		display: block;
-		margin-top: 4px;
-		font-size: 12px;
-		color: var(--color-error, #e55);
-	}
 </style>

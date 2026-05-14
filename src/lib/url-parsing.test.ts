@@ -1,6 +1,24 @@
 import { describe, it, expect } from 'vitest';
 
-import { parsePlayerInput } from '$lib/url-parsing';
+import { parsePlayerInput, profileInputValidationMessage } from '$lib/url-parsing';
+
+describe('profileInputValidationMessage', () => {
+	it('Blank input yields empty string', () => {
+		expect(profileInputValidationMessage('')).toBe('');
+		expect(profileInputValidationMessage('  ')).toBe('');
+	});
+
+	it('Valid input yields empty string', () => {
+		expect(profileInputValidationMessage('76561198082215374')).toBe('');
+	});
+
+	it('Invalid input echoes parse error message', () => {
+		const msg = profileInputValidationMessage('not-good');
+		expect(msg).toBeTruthy();
+		expect(parsePlayerInput('not-good').type).toBe('error');
+		expect((parsePlayerInput('not-good') as { message: string }).message).toBe(msg);
+	});
+});
 
 describe('parsePlayerInput', () => {
 	// #region Happy paths
