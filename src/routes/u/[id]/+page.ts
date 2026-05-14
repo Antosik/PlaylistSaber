@@ -1,7 +1,6 @@
 import { error } from '@sveltejs/kit';
 
 import { getPlatformApi } from '$lib/api/platform';
-import { classifyMaps } from '$lib/domain/pp-improvement';
 import { deriveSkillRange } from '$lib/domain/skill-range';
 import { addHistoryEntry } from '$lib/history';
 import { Platform, DEFAULT_PLATFORM } from '$lib/types';
@@ -24,7 +23,6 @@ export const load: PageLoad = async ({ params, url, fetch }) => {
 		api.getScores(playerId),
 		api.getRankedMaps(fetch),
 	]);
-	const result = classifyMaps(scores, rankedMaps, platform);
 	const skillRange = deriveSkillRange(scores);
 
 	addHistoryEntry({ feature: 'pp-improver', playerId, playerName: info.name });
@@ -32,7 +30,9 @@ export const load: PageLoad = async ({ params, url, fetch }) => {
 	return {
 		playerName: info.name,
 		platformLabel: api.label,
+		platform,
 		skillRange: skillRange ?? null,
-		result,
+		scores,
+		rankedMaps,
 	};
 };

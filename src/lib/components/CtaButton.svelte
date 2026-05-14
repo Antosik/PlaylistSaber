@@ -8,12 +8,7 @@
 		'data-testid'?: string;
 	};
 
-	let {
-		disabled = false,
-		onclick,
-		children,
-		...rest
-	}: CtaProps = $props();
+	let { disabled = false, onclick, children, ...rest }: CtaProps = $props();
 </script>
 
 <div class="wrap">

@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { formatHistoryDateTime } from '$lib/format-datetime';
-	import { clearHistory, getHistory, historyEntryLabelSegments, removeHistoryEntry } from '$lib/history';
+	import {
+		clearHistory,
+		getHistory,
+		historyEntryLabelSegments,
+		removeHistoryEntry,
+	} from '$lib/history';
 	import type { HistoryEntry } from '$lib/history';
 
 	let {
@@ -47,10 +52,9 @@
 								<span class="history-seg-label">{seg.label}</span>
 							{/if}
 							{#if seg.caption}
-								<span
-									class="history-caption"
-									class:history-caption--solo={!seg.label}>{seg.caption}</span
-								>
+								<span class="history-caption" class:history-caption--solo={!seg.label}>
+									{seg.caption}
+								</span>
 							{/if}
 						</span>
 					{/each}

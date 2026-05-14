@@ -1,7 +1,11 @@
 <script lang="ts">
-	import type { RankedMap, ImprovableMap, MapMode } from '$lib/types';
+	import type { Snippet } from 'svelte';
 
+	import type { NewMap, ImprovableMap, MapMode } from '$lib/types';
+
+	import EmptyState from './EmptyState.svelte';
 	import MapRow from './MapRow.svelte';
+	import SettingsDialog from './SettingsDialog.svelte';
 
 	let {
 		title,
@@ -9,12 +13,14 @@
 		maps,
 		mode,
 		onDownload,
+		settingsContent,
 	}: {
 		title: string;
 		subtitle: string;
-		maps: (RankedMap | ImprovableMap)[];
+		maps: (NewMap | ImprovableMap)[];
 		mode: MapMode;
 		onDownload: () => void;
+		settingsContent?: Snippet;
 	} = $props();
 
 	const INITIAL_SHOW = 5;
@@ -30,14 +36,23 @@
 			<h2>{title} <span class="count">({maps.length})</span></h2>
 			<p class="subtitle">{subtitle}</p>
 		</div>
-		<button type="button" class="dl-btn" onclick={onDownload}>↓ Download section</button>
+		<div class="header-actions">
+			{#if settingsContent}
+				<SettingsDialog {title} content={settingsContent} />
+			{/if}
+			<button type="button" class="dl-btn" onclick={onDownload}>↓ Download section</button>
+		</div>
 	</div>
 
-	<div class="list">
-		{#each visible as map (map.id + ':' + map.difficulty)}
-			<MapRow {map} {mode} />
-		{/each}
-	</div>
+	{#if maps.length === 0}
+		<EmptyState>No maps match the current settings.</EmptyState>
+	{:else}
+		<div class="list">
+			{#each visible as map (map.id + ':' + map.difficulty)}
+				<MapRow {map} {mode} />
+			{/each}
+		</div>
+	{/if}
 
 	{#if !expanded && remaining > 0}
 		<button type="button" class="show-more" onclick={() => (expanded = true)}>
@@ -62,6 +77,13 @@
 		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 	}
 
+	.header-actions {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		flex-shrink: 0;
+	}
+
 	h2 {
 		font-size: 15px;
 		font-weight: 600;
@@ -77,7 +99,6 @@
 	}
 
 	.dl-btn {
-		flex-shrink: 0;
 		padding: 5px 10px;
 		border-radius: var(--radius-sm);
 		background: var(--color-accent-dim);

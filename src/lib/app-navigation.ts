@@ -7,9 +7,7 @@ import type { Platform } from './types';
 
 /** Client navigation with `paths.base`-aware pathname + `platform` query. */
 export function gotoPpImprovement(playerId: string, platform: Platform) {
-	return goto(
-		`${resolve('/u/[id]', { id: playerId })}?${new URLSearchParams({ platform })}`
-	);
+	return goto(`${resolve('/u/[id]', { id: playerId })}?${new URLSearchParams({ platform })}`);
 }
 
 export function gotoFriendsSearch(playerIds: string[], platform: Platform) {

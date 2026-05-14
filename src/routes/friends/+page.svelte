@@ -26,9 +26,7 @@
 
 	let canSearch = $derived(
 		players.length >= 2 &&
-			players.every(
-				(p) => p.id.trim() !== '' && profileInputValidationMessage(p.id) === ''
-			)
+			players.every((p) => p.id.trim() !== '' && profileInputValidationMessage(p.id) === '')
 	);
 
 	function navigate(ids: string[]) {

@@ -34,7 +34,7 @@
 			class="profile-input"
 			bind:value
 			oninput={() => onClearError?.()}
-			aria-label={!label ? (ariaLabel || 'Profile URL or player ID') : undefined}
+			aria-label={!label ? ariaLabel || 'Profile URL or player ID' : undefined}
 			aria-invalid={error ? true : undefined}
 		/>
 		{#if error}

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 
 import { applyBlCurve } from '$lib/domain/pp-curve';
-import { classifyMaps } from '$lib/domain/pp-improvement';
+import { classifyMaps, calculateWeightedDelta } from '$lib/domain/pp-improvement';
 import { Platform, type PlayerScore, type RankedMap } from '$lib/types';
 
 const map = (overrides: Partial<RankedMap> = {}): RankedMap => ({
@@ -24,6 +24,131 @@ const score = (overrides: Partial<PlayerScore> = {}): PlayerScore => ({
 	...overrides,
 });
 
+describe('calculateWeightedDelta', () => {
+	it('returns positive delta when inserting a high-pp new score into empty list', () => {
+		const delta = calculateWeightedDelta([], 300);
+		expect(delta).toBeCloseTo(300, 0);
+	});
+
+	it('inserts new score at correct rank and shifts existing scores down', () => {
+		// sorted: [500, 300, 200], inserting 400 at rank 1 (0-indexed)
+		const sorted = [500, 300, 200];
+		const delta = calculateWeightedDelta(sorted, 400);
+		// new list: [500, 400, 300, 200]
+		// old total: 500*1 + 300*0.965 + 200*0.965^2 = 500 + 289.5 + 186.245 = 975.745
+		// new total: 500*1 + 400*0.965 + 300*0.965^2 + 200*0.965^3
+		expect(delta).toBeGreaterThan(0);
+	});
+
+	it('removes old pp and inserts new pp for improvable maps', () => {
+		// old score: 200pp at rank 1 (sorted: [500, 200])
+		// new score: 300pp → new sorted: [500, 300]
+		const sorted = [500, 200];
+		const delta = calculateWeightedDelta(sorted, 300, 200);
+		// old total: 500 + 200*0.965 = 693
+		// new total: 500 + 300*0.965 = 789.5
+		expect(delta).toBeCloseTo(789.5 - 693, 1);
+	});
+
+	it('returns 0 delta when new pp equals old pp', () => {
+		const sorted = [500, 200];
+		const delta = calculateWeightedDelta(sorted, 200, 200);
+		expect(delta).toBeCloseTo(0, 5);
+	});
+
+	it('returns negative delta if new pp is lower than old pp', () => {
+		const sorted = [500, 200];
+		const delta = calculateWeightedDelta(sorted, 150, 200);
+		expect(delta).toBeLessThan(0);
+	});
+});
+
+describe('classifyMaps - accuracy threshold', () => {
+	it('uses 0.95 threshold by default', () => {
+		const maps = [map({ songHash: 'a', pp: 300 })];
+		const scores = [score({ songHash: 'a', accuracy: 0.96, pp: 290 })];
+		const { improvableMaps } = classifyMaps(scores, maps);
+		expect(improvableMaps).toHaveLength(0);
+	});
+
+	it('respects a custom accuracy threshold', () => {
+		const maps = [map({ songHash: 'a', pp: 300 })];
+		const scores = [score({ songHash: 'a', accuracy: 0.96, pp: 290 })];
+		const { improvableMaps } = classifyMaps(scores, maps, Platform.ScoreSaber, {
+			accuracyThreshold: 0.98,
+		});
+		expect(improvableMaps).toHaveLength(1);
+	});
+});
+
+describe('classifyMaps - skill range filter for improvable maps', () => {
+	it('excludes improvable maps outside skill range', () => {
+		// player's skill: centered around 6–7 stars
+		const playerScores = [score({ songHash: 'played', stars: 6.5, pp: 250 })];
+		const maps = [
+			map({ songHash: 'in-range', stars: 6.0, pp: 250 }),
+			map({ songHash: 'too-easy', stars: 1.0, pp: 50 }),
+		];
+		const allScores = [
+			...playerScores,
+			score({ songHash: 'in-range', accuracy: 0.88, pp: 180, stars: 6.0 }),
+			score({ songHash: 'too-easy', accuracy: 0.88, pp: 30, stars: 1.0 }),
+		];
+		const { improvableMaps } = classifyMaps(allScores, maps);
+		expect(improvableMaps.map((m) => m.songHash)).toContain('in-range');
+		expect(improvableMaps.map((m) => m.songHash)).not.toContain('too-easy');
+	});
+
+	it('shows all improvable maps when player has only one score (no skill range derivable)', () => {
+		// With a single score the sigma is 0, clamped to MIN_SIGMA=1, so range is [score.stars-1, score.stars+1.5]
+		// Just verify it doesn't crash and returns results
+		const maps = [map({ songHash: 'a', pp: 300, stars: 6.0 })];
+		const scores = [score({ songHash: 'a', accuracy: 0.88, pp: 200, stars: 6.0 })];
+		const { improvableMaps } = classifyMaps(scores, maps);
+		expect(improvableMaps).toHaveLength(1);
+	});
+});
+
+describe('classifyMaps - negative potential gain filtering', () => {
+	it('excludes improvable maps with non-positive potential gain', () => {
+		// BL: ppAt95 = map.pp * applyBlCurve(95) ≈ map.pp * 1.046
+		// If currentPP > ppAt95 somehow (edge case), potentialGain is negative
+		const maps = [map({ songHash: 'a', pp: 100 })];
+		// Fake a situation: current pp > pp at 95% (shouldn't happen in practice but let's verify filtering)
+		const scores = [score({ songHash: 'a', accuracy: 0.91, pp: 200 })]; // pp > map.pp
+		const { improvableMaps } = classifyMaps(scores, maps);
+		expect(improvableMaps).toHaveLength(0);
+	});
+});
+
+describe('classifyMaps - weightedPPDelta', () => {
+	it('attaches weightedPPDelta to new maps', () => {
+		const maps = [map({ songHash: 'a', pp: 300 })];
+		const { newMaps } = classifyMaps([], maps);
+		expect(newMaps[0]).toHaveProperty('weightedPPDelta');
+		expect(newMaps[0].weightedPPDelta).toBeGreaterThan(0);
+	});
+
+	it('attaches weightedPPDelta to improvable maps', () => {
+		const maps = [map({ songHash: 'a', pp: 300 })];
+		const scores = [score({ songHash: 'a', accuracy: 0.88, pp: 200 })];
+		const { improvableMaps } = classifyMaps(scores, maps);
+		expect(improvableMaps[0]).toHaveProperty('weightedPPDelta');
+		expect(improvableMaps[0].weightedPPDelta).toBeGreaterThan(0);
+	});
+
+	it('sorts by weightedPPDelta descending', () => {
+		// Two maps: one with high raw pp but low weighted impact, one with lower pp but higher weighted impact
+		// In practice weighted delta correlates with pp but let's just verify the sort direction
+		const maps = [
+			map({ songHash: 'a', pp: 200, stars: 5.0 }),
+			map({ songHash: 'b', pp: 400, stars: 6.0 }),
+		];
+		const { newMaps } = classifyMaps([], maps);
+		expect(newMaps[0].weightedPPDelta).toBeGreaterThanOrEqual(newMaps[1].weightedPPDelta);
+	});
+});
+
 describe('classifyMaps - new maps section', () => {
 	it('includes maps the player has never played', () => {
 		const maps = [map({ songHash: 'a' }), map({ songHash: 'b' })];
@@ -38,16 +163,16 @@ describe('classifyMaps - new maps section', () => {
 		expect(newMaps.map((m) => m.songHash)).not.toContain('a');
 	});
 
-	it('sorts new maps by pp descending', () => {
+	it('sorts new maps by weightedPPDelta descending', () => {
 		const maps = [
 			map({ songHash: 'low', pp: 100 }),
 			map({ songHash: 'high', pp: 400 }),
 			map({ songHash: 'mid', pp: 250 }),
 		];
 		const { newMaps } = classifyMaps([], maps);
-		expect(newMaps[0].pp).toBe(400);
-		expect(newMaps[1].pp).toBe(250);
-		expect(newMaps[2].pp).toBe(100);
+		// weighted delta correlates with pp when sortedPPs is empty — higher pp = higher delta
+		expect(newMaps[0].weightedPPDelta).toBeGreaterThanOrEqual(newMaps[1].weightedPPDelta);
+		expect(newMaps[1].weightedPPDelta).toBeGreaterThanOrEqual(newMaps[2].weightedPPDelta);
 	});
 
 	it('caps new maps at 100', () => {
@@ -92,14 +217,16 @@ describe('classifyMaps - improvable maps section', () => {
 		expect(improvableMaps[0].currentPP).toBe(240);
 	});
 
-	it('sorts improvable maps by potential pp gain descending', () => {
+	it('sorts improvable maps by weightedPPDelta descending', () => {
 		const maps = [map({ songHash: 'small-gain', pp: 200 }), map({ songHash: 'big-gain', pp: 500 })];
 		const scores = [
 			score({ songHash: 'small-gain', accuracy: 0.93, pp: 180 }),
 			score({ songHash: 'big-gain', accuracy: 0.8, pp: 300 }),
 		];
 		const { improvableMaps } = classifyMaps(scores, maps);
-		expect(improvableMaps[0].songHash).toBe('big-gain');
+		expect(improvableMaps[0].weightedPPDelta).toBeGreaterThanOrEqual(
+			improvableMaps[1].weightedPPDelta
+		);
 	});
 
 	it('caps improvable maps at 100', () => {

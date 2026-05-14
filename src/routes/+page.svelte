@@ -67,5 +67,4 @@
 	section {
 		margin-bottom: var(--spacing-md);
 	}
-
 </style>

@@ -2,11 +2,11 @@
 	/* eslint-disable svelte/no-navigation-without-resolve -- external BeatSaver URLs */
 	import { getBeatSaverUrl, getOneClickUrl } from '$lib/map-links';
 	import { MapMode } from '$lib/types';
-	import type { RankedMap, ImprovableMap } from '$lib/types';
+	import type { NewMap, ImprovableMap } from '$lib/types';
 
-	let { map, mode }: { map: RankedMap | ImprovableMap; mode: MapMode } = $props();
+	let { map, mode }: { map: NewMap | ImprovableMap; mode: MapMode } = $props();
 
-	function isImprovable(m: RankedMap | ImprovableMap): m is ImprovableMap {
+	function isImprovable(m: NewMap | ImprovableMap): m is ImprovableMap {
 		return 'currentAccuracy' in m;
 	}
 
@@ -15,15 +15,18 @@
 
 <div class="row" data-testid="map-result-row">
 	<span class="stars">★ {map.stars.toFixed(1)}</span>
-	<span class="name">{map.songName}</span>
+	<div class="info">
+		<span class="name">{map.songName}</span>
+		<span class="artist">{map.artist}</span>
+	</div>
 	<span class="diff">{map.difficulty}</span>
 	{#if mode === MapMode.Improvable && imp}
 		<span class="gain">
 			{(imp.currentAccuracy * 100).toFixed(1)}% →
-			<strong>+{Math.round(imp.potentialGain)}pp</strong>
+			<strong>+{Math.round(imp.weightedPPDelta)}pp</strong>
 		</span>
 	{:else}
-		<span class="pp">{Math.round(map.pp)}pp</span>
+		<span class="pp">+{Math.round(map.weightedPPDelta)}pp</span>
 	{/if}
 	<div class="map-links">
 		<a
@@ -57,7 +60,22 @@
 		font-size: 12px;
 	}
 
+	.info {
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		gap: 1px;
+	}
+
 	.name {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.artist {
+		font-size: 11px;
+		color: var(--color-text-muted);
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;

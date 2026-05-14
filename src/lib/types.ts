@@ -41,13 +41,18 @@ export type CoverageResult = {
 	matches: Array<{ slotIndex: number; difficulty: string; stars: number; pp: number }>;
 };
 
+export type NewMap = RankedMap & {
+	weightedPPDelta: number;
+};
+
 export type ImprovableMap = RankedMap & {
 	currentAccuracy: number;
 	currentPP: number;
 	potentialGain: number;
+	weightedPPDelta: number;
 };
 
 export type PPImprovement = {
-	newMaps: RankedMap[];
+	newMaps: NewMap[];
 	improvableMaps: ImprovableMap[];
 };

@@ -1,11 +1,5 @@
 export type ParseResult = { type: 'resolved'; id: string } | { type: 'error'; message: string };
 
-/** Extracts a numeric player ID from a raw string or profile URL. */
-export function extractId(raw: string): string {
-	const m = raw.match(/(\d{17,})/);
-	return m ? m[1] : raw.trim();
-}
-
 export function parsePlayerInput(input: string): ParseResult {
 	const s = input.trim();
 

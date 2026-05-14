@@ -240,10 +240,7 @@ describe('History label segments', () => {
 				playerNames: ['Ann'],
 				timestamp: 0,
 			})
-		).toEqual([
-			{ label: 'Ann', caption: 'a' },
-			{ caption: 'b' },
-		]);
+		).toEqual([{ label: 'Ann', caption: 'a' }, { caption: 'b' }]);
 		expect(
 			historyEntryLabelSegments({
 				feature: 'with-friends',
