@@ -3,9 +3,11 @@
 	import { resolve } from '$app/paths';
 
 	import CtaButton from '$lib/components/CtaButton.svelte';
+	import PlayerHeader from '$lib/components/PlayerHeader.svelte';
 	import RangeInput from '$lib/components/RangeInput.svelte';
-	import ResultsBar from '$lib/components/ResultsBar.svelte';
 	import SectionCard from '$lib/components/SectionCard.svelte';
+	import SettingsDialog from '$lib/components/SettingsDialog.svelte';
+	import SortSelect from '$lib/components/SortSelect.svelte';
 	import { classifyMaps } from '$lib/domain/pp-improvement';
 	import { rankedMapsToBplist, downloadBplist } from '$lib/playlist';
 	import type { NewMap, ImprovableMap } from '$lib/types';
@@ -43,58 +45,72 @@
 	}
 </script>
 
-<ResultsBar
-	info={`${data.platformLabel} · ${data.playerName}${data.skillRange ? ` · ★${data.skillRange.min.toFixed(1)}–${data.skillRange.max.toFixed(1)}` : ''}`}
-	onNewSearch={() => goto(resolve('/'))}
+<PlayerHeader
+	players={[
+		{
+			id: data.playerId,
+			name: data.playerName,
+			avatar: data.playerAvatar,
+			skillRange: data.skillRange ?? undefined,
+		},
+	]}
+	platform={data.platformLabel}
 />
+
+<div class="controls">
+	<button type="button" class="new-search" onclick={() => goto(resolve('/'))}>
+		← New Search
+	</button>
+	<SortSelect
+		bind:value={newMapsSortBy}
+		options={[
+			{ value: 'weightedDelta', label: 'Weighted PP gain' },
+			{ value: 'stars', label: 'Stars' },
+			{ value: 'name', label: 'Song name' },
+		]}
+	/>
+</div>
 
 <div class="sections">
 	<SectionCard
 		title="New Maps"
-		subtitle="Maps you've never played"
+		subtitle="Never played (above {(accuracyThreshold * 100).toFixed(0)}% threshold)"
 		maps={sortedNewMaps}
 		mode="new"
 		onDownload={() => downloadSection(sortedNewMaps, 'New Maps')}
-	>
-		{#snippet settingsContent()}
-			<div class="dialog-field">
-				<label for="new-sort">Sort by</label>
-				<select id="new-sort" bind:value={newMapsSortBy}>
-					<option value="weightedDelta">Weighted PP gain</option>
-					<option value="stars">Stars</option>
-					<option value="name">Song name</option>
-				</select>
-			</div>
-		{/snippet}
-	</SectionCard>
+	/>
+
+	<div class="section-controls">
+		<SortSelect
+			bind:value={improvableSortBy}
+			options={[
+				{ value: 'weightedDelta', label: 'Weighted PP gain' },
+				{ value: 'accuracy', label: 'Current accuracy' },
+				{ value: 'stars', label: 'Stars' },
+				{ value: 'name', label: 'Song name' },
+			]}
+		/>
+		<SettingsDialog title="Settings">
+			{#snippet content()}
+				<RangeInput
+					label="Accuracy threshold: {(accuracyThreshold * 100).toFixed(0)}%"
+					id="acc-threshold"
+					bind:value={accuracyThreshold}
+					min={0.8}
+					max={0.99}
+					step={0.01}
+				/>
+			{/snippet}
+		</SettingsDialog>
+	</div>
 
 	<SectionCard
 		title="Improvable Maps"
-		subtitle="Maps below {(accuracyThreshold * 100).toFixed(0)}% accuracy"
+		subtitle="Below {(accuracyThreshold * 100).toFixed(0)}% accuracy"
 		maps={sortedImprovableMaps}
 		mode="improvable"
 		onDownload={() => downloadSection(sortedImprovableMaps, 'Improvable Maps')}
-	>
-		{#snippet settingsContent()}
-			<RangeInput
-				label="Accuracy threshold: {(accuracyThreshold * 100).toFixed(0)}%"
-				id="imp-threshold"
-				bind:value={accuracyThreshold}
-				min={0.8}
-				max={0.99}
-				step={0.01}
-			/>
-			<div class="dialog-field">
-				<label for="imp-sort">Sort by</label>
-				<select id="imp-sort" bind:value={improvableSortBy}>
-					<option value="weightedDelta">Weighted PP gain</option>
-					<option value="accuracy">Current accuracy (easiest wins first)</option>
-					<option value="stars">Stars</option>
-					<option value="name">Song name</option>
-				</select>
-			</div>
-		{/snippet}
-	</SectionCard>
+	/>
 </div>
 
 <CtaButton
@@ -107,38 +123,38 @@
 </CtaButton>
 
 <style>
+	.controls {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--spacing-md);
+		margin-bottom: var(--spacing-md);
+		flex-wrap: wrap;
+	}
+
+	.new-search {
+		color: var(--color-text-muted);
+		font-size: 13px;
+		padding: 4px 0;
+		white-space: nowrap;
+	}
+
+	.new-search:hover {
+		color: var(--color-text);
+	}
+
+	.section-controls {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		gap: var(--spacing-sm);
+		margin-top: var(--spacing-sm);
+		margin-bottom: var(--spacing-sm);
+	}
+
 	.sections {
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-md);
-	}
-
-	.dialog-field {
-		display: flex;
-		flex-direction: column;
-		gap: 6px;
-	}
-
-	.dialog-field label {
-		display: block;
-		font-size: 12px;
-		color: var(--color-text-muted);
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-	}
-
-	.dialog-field select {
-		width: 100%;
-		padding: 8px 10px;
-		border-radius: var(--radius-sm);
-		border: 1.5px solid rgba(255, 255, 255, 0.1);
-		background: var(--color-surface-2);
-		color: var(--color-text);
-		font-size: 13px;
-		outline: none;
-	}
-
-	.dialog-field select:focus {
-		border-color: var(--color-accent);
 	}
 </style>

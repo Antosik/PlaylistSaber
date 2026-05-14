@@ -1,4 +1,4 @@
-export type SsPlayerInfo = { id: string; name: string; pp: number };
+export type SsPlayerInfo = { id: string; name: string; pp: number; avatar?: string };
 
 export interface SsLeaderboard {
 	id: number;

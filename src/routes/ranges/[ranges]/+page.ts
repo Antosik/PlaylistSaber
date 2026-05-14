@@ -14,7 +14,7 @@ export const load: PageLoad = async ({ params, url, fetch }) => {
 			? Platform.BeatLeader
 			: DEFAULT_PLATFORM;
 
-	const tokens = (params.ranges ?? '').split(',').filter(Boolean);
+	const tokens = Array.from(new Set((params.ranges ?? '').split(',').filter(Boolean)));
 	if (tokens.length === 0) throw error(400, 'No ranges');
 
 	const rangeRegex = /^(\d+(?:\.\d+)?)?-(\d+(?:\.\d+)?)?$/;

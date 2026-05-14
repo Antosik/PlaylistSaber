@@ -28,7 +28,9 @@ export const load: PageLoad = async ({ params, url, fetch }) => {
 	addHistoryEntry({ feature: 'pp-improver', playerId, playerName: info.name });
 
 	return {
+		playerId,
 		playerName: info.name,
+		playerAvatar: info.avatar,
 		platformLabel: api.label,
 		platform,
 		skillRange: skillRange ?? null,

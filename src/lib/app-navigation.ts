@@ -11,14 +11,17 @@ export function gotoPpImprovement(playerId: string, platform: Platform) {
 }
 
 export function gotoFriendsSearch(playerIds: string[], platform: Platform) {
+	const uniqueIds = Array.from(new Set(playerIds));
+
 	return goto(
-		`${resolve('/friends/[ids]', { ids: playerIds.join(',') })}?${new URLSearchParams({ platform })}`
+		`${resolve('/friends/[ids]', { ids: uniqueIds.join(',') })}?${new URLSearchParams({ platform })}`
 	);
 }
 
 export function gotoRangesSearch(rangeStrs: string[], platform: Platform) {
+	const uniqueRanges = Array.from(new Set(rangeStrs));
 	return goto(
-		`${resolve('/ranges/[ranges]', { ranges: rangeStrs.join(',') })}?${new URLSearchParams({
+		`${resolve('/ranges/[ranges]', { ranges: uniqueRanges.join(',') })}?${new URLSearchParams({
 			platform,
 		})}`
 	);

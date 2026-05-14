@@ -48,7 +48,6 @@ export type NewMap = RankedMap & {
 export type ImprovableMap = RankedMap & {
 	currentAccuracy: number;
 	currentPP: number;
-	potentialGain: number;
 	weightedPPDelta: number;
 };
 

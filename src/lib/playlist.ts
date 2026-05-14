@@ -1,4 +1,4 @@
-import type { RankedMap, CoverageResult } from './types';
+import type { NewMap, ImprovableMap, CoverageResult } from './types';
 
 const BLANK_IMAGE =
 	'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
@@ -20,7 +20,7 @@ function toBplist(title: string, songs: BplistSong[]): Bplist {
 	return { playlistTitle: title, playlistAuthor: 'PlaylistSaber', image: BLANK_IMAGE, songs };
 }
 
-export function rankedMapsToBplist(maps: RankedMap[], title: string): Bplist {
+export function rankedMapsToBplist(maps: (NewMap | ImprovableMap)[], title: string): Bplist {
 	const songs = maps.map((m) => ({
 		hash: m.songHash.toLowerCase(),
 		songName: m.songName,

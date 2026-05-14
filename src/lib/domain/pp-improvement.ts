@@ -56,7 +56,6 @@ function ppAtReferenceAccuracy(map: RankedMap, platform: Platform): number {
 
 /**
  * Classifies ranked maps into new (never played) and improvable (played at <accuracy threshold).
- * potentialGain = pp at 95% accuracy − current pp on that map.
  * Each combination of songHash + difficulty is treated as a separate play.
  */
 export function classifyMaps(
@@ -89,14 +88,12 @@ export function classifyMaps(
 		} else if (score.accuracy < accuracyThreshold) {
 			if (skillRange && (map.stars < skillRange.min || map.stars > skillRange.max)) continue;
 			const ppAt95 = ppAtReferenceAccuracy(map, platform);
-			const potentialGain = ppAt95 - score.pp;
-			if (potentialGain <= 0) continue;
+			if (ppAt95 <= score.pp) continue;
 			const weightedPPDelta = calculateWeightedDelta(sortedPPs, ppAt95, score.pp);
 			improvableMaps.push({
 				...map,
 				currentAccuracy: score.accuracy,
 				currentPP: score.pp,
-				potentialGain,
 				weightedPPDelta,
 			});
 		}

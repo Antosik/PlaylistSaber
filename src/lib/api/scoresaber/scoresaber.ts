@@ -9,8 +9,10 @@ import { diffName } from './utils';
 const api = ky.extend({ prefix: 'https://scoresaber.com/api', retry: 2, timeout: 10000, fetch });
 
 export async function getSsPlayer(id: string): Promise<SsPlayerInfo> {
-	const data = await api.get(`player/${id}/full`).json<{ id: string; name: string; pp: number }>();
-	return { id: data.id, name: data.name, pp: data.pp };
+	const data = await api
+		.get(`player/${id}/full`)
+		.json<{ id: string; name: string; pp: number; profilePicture?: string }>();
+	return { id: data.id, name: data.name, pp: data.pp, avatar: data.profilePicture };
 }
 
 export async function getSsPlayerScores(

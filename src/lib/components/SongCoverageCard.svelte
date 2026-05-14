@@ -1,14 +1,14 @@
 <script lang="ts">
-	import type { CoverageResult, PlayerSlot, SkillRange } from '$lib/types';
+	/* eslint-disable svelte/no-navigation-without-resolve -- external BeatSaver URLs */
+	import { getBeatSaverUrl, getOneClickUrl } from '$lib/map-links';
+	import type { CoverageResult, PlayerSlot } from '$lib/types';
 
 	let {
 		result,
 		slots,
-		ranges,
 	}: {
 		result: CoverageResult;
 		slots: PlayerSlot[];
-		ranges?: Partial<Record<number, SkillRange>>; // slotIndex → derived range (With Friends only)
 	} = $props();
 
 	// Group matches by slotIndex, pick best (highest pp) per slot
@@ -18,32 +18,37 @@
 			return { slot, match: m };
 		})
 	);
-
-	function connector(i: number): string {
-		return i === slots.length - 1 ? '└' : '├';
-	}
 </script>
 
 <div class="card">
 	<div class="song-header">
-		<span class="name">{result.songName}</span>
-		<span class="artist">- {result.artist}</span>
+		<div>
+			<span class="name">{result.songName}</span>
+			<span class="artist">- {result.artist}</span>
+		</div>
+		<div class="map-links">
+			<a
+				href={getBeatSaverUrl(result.songHash)}
+				target="_blank"
+				rel="noopener noreferrer"
+				class="map-link"
+				title="Open on BeatSaver">BS</a
+			>
+			<a href={getOneClickUrl(result.songHash)} class="map-link" title="One-click install">↓</a>
+		</div>
 	</div>
-	{#each slotMatches as { slot, match }, i (i)}
-		{#if match}
-			<div class="slot-row">
-				<span class="connector">{connector(i)}</span>
-				<span class="label">{slot.label || `Slot ${i + 1}`}</span>
-				{#if ranges?.[i]}
-					{@const r = ranges[i]!}
-					<span class="range-tag">[★{r.min.toFixed(1)}–{r.max.toFixed(1)}]</span>
-				{/if}
-				<span class="diff">{match.difficulty}</span>
-				<span class="stars">★ {match.stars.toFixed(1)}</span>
-				<span class="pp">{Math.round(match.pp)}pp</span>
-			</div>
-		{/if}
-	{/each}
+	<div class="slots-container">
+		{#each slotMatches as { slot, match }, i (i)}
+			{#if match}
+				<div class="slot-badge">
+					<span class="player-name">{slot.label || `Slot ${i + 1}`}</span>
+					<span class="badge-item diff">{match.difficulty}</span>
+					<span class="badge-item stars">★{match.stars.toFixed(1)}</span>
+					<span class="badge-item pp">{Math.round(match.pp)}pp</span>
+				</div>
+			{/if}
+		{/each}
+	</div>
 </div>
 
 <style>
@@ -54,6 +59,10 @@
 	}
 
 	.song-header {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 12px;
 		margin-bottom: 8px;
 		font-size: 14px;
 	}
@@ -61,36 +70,63 @@
 	.name {
 		font-weight: 600;
 	}
+
 	.artist {
 		color: var(--color-text-muted);
 		margin-left: 4px;
 	}
 
-	.slot-row {
+	.map-links {
+		display: flex;
+		gap: 4px;
+		align-items: center;
+		flex-shrink: 0;
+	}
+
+	.map-link {
+		font-size: 11px;
+		padding: 2px 6px;
+		border-radius: 4px;
+		background: rgba(255, 255, 255, 0.07);
+		color: var(--color-text-muted);
+		white-space: nowrap;
+		text-decoration: none;
+	}
+
+	.map-link:hover {
+		background: rgba(255, 255, 255, 0.14);
+		color: var(--color-text);
+	}
+
+	.slots-container {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		margin-top: 2px;
+	}
+
+	.slot-badge {
 		display: flex;
 		align-items: center;
-		gap: 8px;
-		font-size: 12px;
-		padding: 2px 0;
-	}
-
-	.connector {
-		color: var(--color-text-muted);
-		font-family: monospace;
-		width: 12px;
-	}
-
-	.label {
-		min-width: 80px;
-		color: var(--color-text-muted);
-	}
-
-	.range-tag {
+		gap: 6px;
+		padding: 4px 6px;
+		background: rgba(255, 255, 255, 0.04);
+		border-radius: var(--radius-sm);
 		font-size: 11px;
-		color: var(--color-text-muted);
-		background: rgba(255, 255, 255, 0.06);
-		padding: 1px 5px;
+	}
+
+	.player-name {
+		min-width: 60px;
+		color: var(--color-text);
+		font-weight: 500;
+		margin-right: auto;
+	}
+
+	.badge-item {
+		padding: 2px 4px;
+		background: rgba(255, 255, 255, 0.08);
 		border-radius: 3px;
+		white-space: nowrap;
 	}
 
 	.diff {
@@ -99,12 +135,9 @@
 
 	.stars {
 		color: var(--color-star);
-		margin-left: auto;
 	}
 
 	.pp {
 		color: var(--color-pp);
-		min-width: 50px;
-		text-align: right;
 	}
 </style>

@@ -111,10 +111,8 @@ describe('classifyMaps - skill range filter for improvable maps', () => {
 
 describe('classifyMaps - negative potential gain filtering', () => {
 	it('excludes improvable maps with non-positive potential gain', () => {
-		// BL: ppAt95 = map.pp * applyBlCurve(95) ≈ map.pp * 1.046
-		// If currentPP > ppAt95 somehow (edge case), potentialGain is negative
 		const maps = [map({ songHash: 'a', pp: 100 })];
-		// Fake a situation: current pp > pp at 95% (shouldn't happen in practice but let's verify filtering)
+		// current pp exceeds ppAt95 — no gain possible, should be excluded
 		const scores = [score({ songHash: 'a', accuracy: 0.91, pp: 200 })]; // pp > map.pp
 		const { improvableMaps } = classifyMaps(scores, maps);
 		expect(improvableMaps).toHaveLength(0);
@@ -211,8 +209,7 @@ describe('classifyMaps - improvable maps section', () => {
 		const maps = [map({ songHash: 'a', pp: 300 })];
 		const scores = [score({ songHash: 'a', accuracy: 0.92, pp: 240 })];
 		const { improvableMaps } = classifyMaps(scores, maps);
-		// gain = pp at 95% − current pp
-		expect(improvableMaps[0].potentialGain).toBeGreaterThan(0);
+		expect(improvableMaps[0].weightedPPDelta).toBeGreaterThan(0);
 		expect(improvableMaps[0].currentAccuracy).toBe(0.92);
 		expect(improvableMaps[0].currentPP).toBe(240);
 	});
@@ -313,6 +310,7 @@ describe('classifyMaps - platform pp curve', () => {
 		const maps = [map({ songHash: 'a', pp: 100 })];
 		const scores = [score({ songHash: 'a', accuracy: 0.92, pp: 40 })];
 		const { improvableMaps } = classifyMaps(scores, maps, Platform.BeatLeader);
-		expect(improvableMaps[0].potentialGain).toBeCloseTo(100 * applyBlCurve(95) - 40, 5);
+		// With a single score, weightedPPDelta equals the raw gain: ppAt95 - currentPP
+		expect(improvableMaps[0].weightedPPDelta).toBeCloseTo(100 * applyBlCurve(95) - 40, 5);
 	});
 });

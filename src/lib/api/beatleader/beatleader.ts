@@ -8,8 +8,10 @@ import type { BlPlayerInfo, BlPlayerScore } from './types';
 const api = ky.extend({ prefix: 'https://api.beatleader.xyz', retry: 2, timeout: 10000, fetch });
 
 export async function getBlPlayer(id: string): Promise<BlPlayerInfo> {
-	const data = await api.get(`player/${id}`).json<{ id: string; name: string; pp: number }>();
-	return { id: data.id, name: data.name, pp: data.pp };
+	const data = await api
+		.get(`player/${id}`)
+		.json<{ id: string; name: string; pp: number; avatar?: string }>();
+	return { id: data.id, name: data.name, pp: data.pp, avatar: data.avatar };
 }
 
 export async function getBlPlayerScores(
