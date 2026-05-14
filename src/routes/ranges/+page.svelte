@@ -8,17 +8,17 @@
 	import type { HistoryEntry } from '$lib/history';
 	import { Platform, DEFAULT_PLATFORM } from '$lib/types';
 
-	type SlotRow = { label: string; min: string; max: string };
+	type SlotRow = { min: string; max: string };
 
 	let platform: Platform = $state(DEFAULT_PLATFORM);
 	let slotRows: SlotRow[] = $state([
-		{ label: 'You (optional)', min: '', max: '' },
-		{ label: 'Friend 1', min: '', max: '' },
+		{ min: '', max: '' },
+		{ min: '', max: '' },
 	]);
 	let rangesHistory: HistoryEntry[] = $state(getHistory('ranges'));
 
 	function addSlot() {
-		slotRows = [...slotRows, { label: `Friend ${slotRows.length}`, min: '', max: '' }];
+		slotRows = [...slotRows, { min: '', max: '' }];
 	}
 
 	function removeSlot(i: number) {
@@ -63,33 +63,30 @@
 		<div class="slots-box">
 			{#each slotRows as row, i (`slot-${i}`)}
 				<div class="slot-row">
-					<input
-						type="text"
-						class="label-input"
-						placeholder={i === 0 ? 'You (optional)' : `Friend ${i}`}
-						bind:value={row.label}
-					/>
+					<span class="slot-index">{i + 1}</span>
 					<span class="star-icon">★</span>
 					<input
 						type="number"
 						class="star-input"
-						data-testid="ranges-slot-{i}-min"
+						data-testid={`ranges-slot-${i}-min`}
 						placeholder="min"
 						min="0"
 						step="0.1"
 						bind:value={row.min}
 						class:error={hasRangeError(row)}
+						aria-label={`Slot ${i + 1} star minimum`}
 					/>
 					<span class="sep">–</span>
 					<input
 						type="number"
 						class="star-input"
-						data-testid="ranges-slot-{i}-max"
+						data-testid={`ranges-slot-${i}-max`}
 						placeholder="max"
 						min="0"
 						step="0.1"
 						bind:value={row.max}
 						class:error={hasRangeError(row)}
+						aria-label={`Slot ${i + 1} star maximum`}
 					/>
 					{#if i > 0}
 						<button type="button" class="remove" onclick={() => removeSlot(i)}>✕</button>
@@ -138,20 +135,15 @@
 		gap: var(--spacing-sm);
 	}
 
-	.label-input {
-		width: 120px;
+	.slot-index {
 		flex-shrink: 0;
-		padding: 8px 10px;
-		border-radius: var(--radius-sm);
-		border: 1.5px solid rgba(255, 255, 255, 0.08);
-		background: var(--color-surface-2);
-		color: var(--color-text);
-		font-size: 13px;
-		outline: none;
-	}
-
-	.label-input:focus {
-		border-color: var(--color-accent);
+		width: 22px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 12px;
+		font-variant-numeric: tabular-nums;
+		color: var(--color-text-muted);
 	}
 
 	.star-icon {
@@ -187,7 +179,7 @@
 	.range-error {
 		font-size: 11px;
 		color: var(--color-error);
-		margin-left: 132px;
+		margin-left: calc(22px + var(--spacing-sm) + 13px + var(--spacing-sm));
 		margin-top: -4px;
 	}
 
