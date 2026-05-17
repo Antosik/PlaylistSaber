@@ -47,7 +47,9 @@
 		font-size: 13px;
 		border: 1px solid rgba(255, 255, 255, 0.1);
 		cursor: pointer;
-		transition: all 0.15s ease;
+		transition:
+			background 0.15s,
+			color 0.15s;
 	}
 
 	.settings-btn:hover {
@@ -99,7 +101,9 @@
 		padding: 4px 8px;
 		margin: -4px -8px;
 		border-radius: var(--radius-sm);
-		transition: all 0.15s ease;
+		transition:
+			background 0.15s,
+			color 0.15s;
 	}
 
 	.close-btn:hover {

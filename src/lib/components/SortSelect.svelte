@@ -14,12 +14,14 @@
 </script>
 
 <div class="sort-control">
-	<label for="sort-select">Sort by:</label>
-	<select id="sort-select" bind:value>
-		{#each options as option (option.value)}
-			<option value={option.value}>{option.label}</option>
-		{/each}
-	</select>
+	<label>
+		Sort by:
+		<select bind:value>
+			{#each options as option (option.value)}
+				<option value={option.value}>{option.label}</option>
+			{/each}
+		</select>
+	</label>
 </div>
 
 <style>

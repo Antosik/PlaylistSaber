@@ -12,7 +12,6 @@ function inSlot(stars: number, slot: PlayerSlot): boolean {
  * Capped at 200 results, sorted by highest matched star descending.
  */
 export function findCoveringSongs(rankedMaps: RankedMap[], slots: PlayerSlot[]): CoverageResult[] {
-	// Group maps by songHash
 	const byHash = new Map<string, RankedMap[]>();
 	for (const map of rankedMaps) {
 		const group = byHash.get(map.songHash);
@@ -23,7 +22,6 @@ export function findCoveringSongs(rankedMaps: RankedMap[], slots: PlayerSlot[]):
 	const results: CoverageResult[] = [];
 
 	for (const [songHash, diffs] of byHash) {
-		// For each slot, find difficulties that match it
 		const matches: CoverageResult['matches'] = [];
 		let allSlotsCovered = true;
 
@@ -47,7 +45,6 @@ export function findCoveringSongs(rankedMaps: RankedMap[], slots: PlayerSlot[]):
 		results.push({ songHash, songName: first.songName, artist: first.artist, matches });
 	}
 
-	// Sort by highest matched star descending
 	results.sort((a, b) => {
 		const aMax = Math.max(...a.matches.map((m) => m.stars));
 		const bMax = Math.max(...b.matches.map((m) => m.stars));
@@ -55,4 +52,26 @@ export function findCoveringSongs(rankedMaps: RankedMap[], slots: PlayerSlot[]):
 	});
 
 	return results.slice(0, 200);
+}
+
+export function sortCoverageResults(
+	results: CoverageResult[],
+	by: 'default' | 'name' | 'stars' | 'pp'
+): CoverageResult[] {
+	const copy = [...results];
+	switch (by) {
+		case 'name':
+			return copy.sort((a, b) => a.songName.localeCompare(b.songName));
+		case 'stars':
+			return copy.sort(
+				(a, b) =>
+					Math.max(...b.matches.map((m) => m.stars)) - Math.max(...a.matches.map((m) => m.stars))
+			);
+		case 'pp':
+			return copy.sort(
+				(a, b) => b.matches.reduce((s, m) => s + m.pp, 0) - a.matches.reduce((s, m) => s + m.pp, 0)
+			);
+		default:
+			return copy;
+	}
 }

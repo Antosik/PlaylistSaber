@@ -22,7 +22,7 @@
 	}
 
 	function removeSlot(i: number) {
-		slotRows = slotRows.filter((_: SlotRow, idx: number) => idx !== i);
+		slotRows = slotRows.filter((_, idx) => idx !== i);
 	}
 
 	function hasRangeError(r: SlotRow): boolean {

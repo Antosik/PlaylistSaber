@@ -74,9 +74,7 @@ describe('classifyMaps - accuracy threshold', () => {
 	it('respects a custom accuracy threshold', () => {
 		const maps = [map({ songHash: 'a', pp: 300 })];
 		const scores = [score({ songHash: 'a', accuracy: 0.96, pp: 290 })];
-		const { improvableMaps } = classifyMaps(scores, maps, Platform.ScoreSaber, {
-			accuracyThreshold: 0.98,
-		});
+		const { improvableMaps } = classifyMaps(scores, maps, Platform.ScoreSaber, 0.98);
 		expect(improvableMaps).toHaveLength(1);
 	});
 });

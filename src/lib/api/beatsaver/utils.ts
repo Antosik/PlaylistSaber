@@ -1,18 +1,15 @@
-import type { RankedMap, Platform } from '../../types';
-import { Platform as PlatformValue } from '../../types';
+import { type RankedMap, Platform } from '../../types';
 import { basePpFromStars as blBasePpFromStars } from '../beatleader/utils';
 import { basePpFromStars as ssBasePpFromStars } from '../scoresaber/utils';
 
 import type { BeatSaverDoc, BeatSaverLeaderboard } from './types';
 
 export function getBeatSaverLeaderboard(platform: Platform): BeatSaverLeaderboard {
-	return platform === PlatformValue.ScoreSaber ? 'ScoreSaber' : 'BeatLeader';
+	return platform === Platform.ScoreSaber ? 'ScoreSaber' : 'BeatLeader';
 }
 
 function mapBasePP(stars: number, platform: Platform): number {
-	return platform === PlatformValue.ScoreSaber
-		? ssBasePpFromStars(stars)
-		: blBasePpFromStars(stars);
+	return platform === Platform.ScoreSaber ? ssBasePpFromStars(stars) : blBasePpFromStars(stars);
 }
 
 export function flattenBeatSaverMaps(docs: BeatSaverDoc[], platform: Platform): RankedMap[] {

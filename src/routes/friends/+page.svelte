@@ -21,7 +21,7 @@
 	}
 
 	function removePlayer(i: number) {
-		players = players.filter((_: PlayerRow, idx: number) => idx !== i);
+		players = players.filter((_, idx) => idx !== i);
 	}
 
 	let canSearch = $derived(

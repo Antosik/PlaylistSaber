@@ -7,6 +7,7 @@
 	import PlayerHeader from '$lib/components/PlayerHeader.svelte';
 	import SongCoverageCard from '$lib/components/SongCoverageCard.svelte';
 	import SortSelect from '$lib/components/SortSelect.svelte';
+	import { sortCoverageResults } from '$lib/domain/coverage';
 	import { coverageToBplist, downloadBplist } from '$lib/playlist';
 
 	import type { PageProps } from './$types';
@@ -17,29 +18,7 @@
 	let expanded = $state(false);
 	let sortBy = $state<'default' | 'name' | 'stars' | 'pp'>('default');
 
-	function getSortedResults() {
-		const results = [...data.results];
-		if (sortBy === 'name') {
-			return results.sort((a, b) => a.songName.localeCompare(b.songName));
-		}
-		if (sortBy === 'stars') {
-			return results.sort((a, b) => {
-				const aStars = Math.max(...a.matches.map((m) => m.stars));
-				const bStars = Math.max(...b.matches.map((m) => m.stars));
-				return bStars - aStars;
-			});
-		}
-		if (sortBy === 'pp') {
-			return results.sort((a, b) => {
-				const aPp = a.matches.reduce((sum, m) => sum + m.pp, 0);
-				const bPp = b.matches.reduce((sum, m) => sum + m.pp, 0);
-				return bPp - aPp;
-			});
-		}
-		return results;
-	}
-
-	let sortedResults = $derived(getSortedResults());
+	let sortedResults = $derived(sortCoverageResults(data.results, sortBy));
 </script>
 
 <PlayerHeader players={data.players} platform={data.platformLabel} />

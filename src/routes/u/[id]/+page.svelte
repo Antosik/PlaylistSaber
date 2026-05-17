@@ -20,9 +20,7 @@
 	let newMapsSortBy = $state<'weightedDelta' | 'stars' | 'name'>('weightedDelta');
 	let improvableSortBy = $state<'weightedDelta' | 'accuracy' | 'stars' | 'name'>('weightedDelta');
 
-	const r = $derived(
-		classifyMaps(data.scores, data.rankedMaps, data.platform, { accuracyThreshold })
-	);
+	const r = $derived(classifyMaps(data.scores, data.rankedMaps, data.platform, accuracyThreshold));
 
 	const sortedNewMaps = $derived(sortNewMaps(r.newMaps, newMapsSortBy));
 	const sortedImprovableMaps = $derived(sortImprovableMaps(r.improvableMaps, improvableSortBy));

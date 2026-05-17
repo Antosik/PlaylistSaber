@@ -62,10 +62,8 @@ export function classifyMaps(
 	playerScores: PlayerScore[],
 	rankedMaps: RankedMap[],
 	platform: Platform = Platform.ScoreSaber,
-	options: { accuracyThreshold?: number } = {}
+	accuracyThreshold = 0.95
 ): PPImprovement {
-	const { accuracyThreshold = 0.95 } = options;
-
 	const played = new Map<string, PlayerScore>();
 	for (const score of playerScores) {
 		played.set(playLookupKey(score.songHash, score.difficulty), score);
