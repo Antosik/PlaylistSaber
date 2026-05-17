@@ -7,6 +7,7 @@
 	import SongCoverageCard from '$lib/components/SongCoverageCard.svelte';
 	import SortSelect from '$lib/components/SortSelect.svelte';
 	import { sortCoverageResults } from '$lib/domain/coverage';
+	import { addHistoryEntry } from '$lib/history';
 	import { coverageToBplist, downloadBplist } from '$lib/playlist';
 
 	import type { PageProps } from './$types';
@@ -17,7 +18,9 @@
 	let expanded = $state(false);
 	let sortBy = $state<'default' | 'name' | 'stars' | 'pp'>('default');
 
-	let sortedResults = $derived(sortCoverageResults(data.results, sortBy));
+	$effect(() => {
+		addHistoryEntry({ feature: 'ranges', ranges: data.tokens });
+	});
 </script>
 
 <div class="header">
@@ -43,27 +46,34 @@
 	<SortSelect bind:value={sortBy} />
 </div>
 
-{#if data.results.length === 0}
-	<EmptyState>
-		<p>No songs found that cover all ranges on {data.platformLabel}.</p>
-		<p>Try widening one or more star ranges.</p>
-	</EmptyState>
-{:else}
-	<p class="summary">{data.results.length} songs cover all {data.slotCount} ranges</p>
-	<div class="cards">
-		{#each expanded ? sortedResults : sortedResults.slice(0, INITIAL_SHOW) as result (result.songHash)}
-			<SongCoverageCard {result} slots={data.slots} />
-		{/each}
-	</div>
-	{#if !expanded && sortedResults.length > INITIAL_SHOW}
-		<button type="button" class="show-more" onclick={() => (expanded = true)}>
-			Show more - {sortedResults.length - INITIAL_SHOW} more songs
-		</button>
+{#await data.streamed}
+	<p class="loading">Loading maps…</p>
+{:then { results }}
+	{#if results.length === 0}
+		<EmptyState>
+			<p>No songs found that cover all ranges on {data.platformLabel}.</p>
+			<p>Try widening one or more star ranges.</p>
+		</EmptyState>
+	{:else}
+		{@const sortedResults = sortCoverageResults(results, sortBy)}
+		<p class="summary">{results.length} songs cover all {data.slotCount} ranges</p>
+		<div class="cards">
+			{#each expanded ? sortedResults : sortedResults.slice(0, INITIAL_SHOW) as result (result.songHash)}
+				<SongCoverageCard {result} slots={data.slots} />
+			{/each}
+		</div>
+		{#if !expanded && sortedResults.length > INITIAL_SHOW}
+			<button type="button" class="show-more" onclick={() => (expanded = true)}>
+				Show more - {sortedResults.length - INITIAL_SHOW} more songs
+			</button>
+		{/if}
+		<CtaButton onclick={() => downloadBplist(coverageToBplist(sortedResults, 'Ranges'))}>
+			↓ Download Playlist ({sortedResults.length} songs)
+		</CtaButton>
 	{/if}
-	<CtaButton onclick={() => downloadBplist(coverageToBplist(sortedResults, 'Ranges'))}>
-		↓ Download Playlist ({sortedResults.length} songs)
-	</CtaButton>
-{/if}
+{:catch err}
+	<p class="error">Failed to load maps: {err.message}</p>
+{/await}
 
 <style>
 	.header {
@@ -152,5 +162,15 @@
 
 	.show-more:hover {
 		color: var(--color-text);
+	}
+
+	.loading {
+		color: var(--color-text-muted);
+		font-size: 13px;
+	}
+
+	.error {
+		color: var(--color-error, red);
+		font-size: 13px;
 	}
 </style>

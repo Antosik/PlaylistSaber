@@ -2,13 +2,12 @@ import { error } from '@sveltejs/kit';
 
 import { getPlatformApi } from '$lib/api/platform';
 import { findCoveringSongs } from '$lib/domain/coverage';
-import { addHistoryEntry } from '$lib/history';
 import { Platform, DEFAULT_PLATFORM } from '$lib/types';
 import type { PlayerSlot } from '$lib/types';
 
-import type { PageLoad } from './$types';
+import type { PageServerLoad } from './$types';
 
-export const load: PageLoad = async ({ params, url, fetch }) => {
+export const load: PageServerLoad = ({ params, url }) => {
 	const platform =
 		url.searchParams.get('platform') === Platform.BeatLeader
 			? Platform.BeatLeader
@@ -30,15 +29,11 @@ export const load: PageLoad = async ({ params, url, fetch }) => {
 	});
 
 	const api = getPlatformApi(platform);
-	const rankedMaps = await api.getRankedMaps(fetch);
-	const results = findCoveringSongs(rankedMaps, slots);
 
-	addHistoryEntry({ feature: 'ranges', ranges: tokens });
+	const streamed = (async () => {
+		const results = findCoveringSongs(api.getRankedMaps(), slots);
+		return { results };
+	})();
 
-	return {
-		platformLabel: api.label,
-		slotCount: slots.length,
-		results,
-		slots,
-	};
+	return { platformLabel: api.label, slotCount: slots.length, slots, tokens, streamed };
 };

@@ -8,6 +8,7 @@
 	import SongCoverageCard from '$lib/components/SongCoverageCard.svelte';
 	import SortSelect from '$lib/components/SortSelect.svelte';
 	import { sortCoverageResults } from '$lib/domain/coverage';
+	import { addHistoryEntry } from '$lib/history';
 	import { coverageToBplist, downloadBplist } from '$lib/playlist';
 
 	import type { PageProps } from './$types';
@@ -18,42 +19,59 @@
 	let expanded = $state(false);
 	let sortBy = $state<'default' | 'name' | 'stars' | 'pp'>('default');
 
-	let sortedResults = $derived(sortCoverageResults(data.results, sortBy));
+	$effect(() => {
+		data.streamed.then(({ players }) => {
+			addHistoryEntry({
+				feature: 'with-friends',
+				playerIds: data.playerIds,
+				playerNames: players.map((p) => p.name),
+			});
+		});
+	});
 </script>
 
-<PlayerHeader players={data.players} platform={data.platformLabel} />
+<PlayerHeader players={[]} platform={data.platformLabel} />
 
-<div class="controls">
-	<button type="button" class="new-search" onclick={() => goto(resolve('/friends'))}>
-		← New Search
-	</button>
-	<SortSelect bind:value={sortBy} />
-</div>
+{#await data.streamed}
+	<p class="loading">Loading players…</p>
+{:then { players, results, playerCount, slots }}
+	<PlayerHeader {players} platform={data.platformLabel} />
 
-{#if data.results.length === 0}
-	<EmptyState>
-		<p>No songs found that cover all {data.playerCount} players on {data.platformLabel}.</p>
-		<p>
-			Your skill ranges may be too far apart for any song to bridge them. Try adding players closer
-			in level.
-		</p>
-	</EmptyState>
-{:else}
-	<p class="summary">{data.results.length} songs cover all {data.playerCount} players</p>
-	<div class="cards">
-		{#each expanded ? sortedResults : sortedResults.slice(0, INITIAL_SHOW) as result (result.songHash)}
-			<SongCoverageCard {result} slots={data.slots} />
-		{/each}
-	</div>
-	{#if !expanded && sortedResults.length > INITIAL_SHOW}
-		<button type="button" class="show-more" onclick={() => (expanded = true)}>
-			Show more - {sortedResults.length - INITIAL_SHOW} more songs
+	<div class="controls">
+		<button type="button" class="new-search" onclick={() => goto(resolve('/friends'))}>
+			← New Search
 		</button>
+		<SortSelect bind:value={sortBy} />
+	</div>
+
+	{#if results.length === 0}
+		<EmptyState>
+			<p>No songs found that cover all {playerCount} players on {data.platformLabel}.</p>
+			<p>
+				Your skill ranges may be too far apart for any song to bridge them. Try adding players
+				closer in level.
+			</p>
+		</EmptyState>
+	{:else}
+		{@const sortedResults = sortCoverageResults(results, sortBy)}
+		<p class="summary">{results.length} songs cover all {playerCount} players</p>
+		<div class="cards">
+			{#each expanded ? sortedResults : sortedResults.slice(0, INITIAL_SHOW) as result (result.songHash)}
+				<SongCoverageCard {result} {slots} />
+			{/each}
+		</div>
+		{#if !expanded && sortedResults.length > INITIAL_SHOW}
+			<button type="button" class="show-more" onclick={() => (expanded = true)}>
+				Show more - {sortedResults.length - INITIAL_SHOW} more songs
+			</button>
+		{/if}
+		<CtaButton onclick={() => downloadBplist(coverageToBplist(sortedResults, 'With Friends'))}>
+			↓ Download Playlist ({sortedResults.length} songs)
+		</CtaButton>
 	{/if}
-	<CtaButton onclick={() => downloadBplist(coverageToBplist(sortedResults, 'With Friends'))}>
-		↓ Download Playlist ({sortedResults.length} songs)
-	</CtaButton>
-{/if}
+{:catch err}
+	<p class="error">Failed to load players: {err.message}</p>
+{/await}
 
 <style>
 	.controls {
@@ -100,5 +118,15 @@
 
 	.show-more:hover {
 		color: var(--color-text);
+	}
+
+	.loading {
+		color: var(--color-text-muted);
+		font-size: 13px;
+	}
+
+	.error {
+		color: var(--color-error, red);
+		font-size: 13px;
 	}
 </style>

@@ -9,33 +9,60 @@
 	import SettingsDialog from '$lib/components/SettingsDialog.svelte';
 	import SortSelect from '$lib/components/SortSelect.svelte';
 	import { classifyMaps } from '$lib/domain/pp-improvement';
+	import { addHistoryEntry } from '$lib/history';
 	import { rankedMapsToBplist, downloadBplist } from '$lib/playlist';
 	import type { NewMap, ImprovableMap } from '$lib/types';
 
 	import type { PageProps } from './$types';
 
+	type StreamedData = Awaited<typeof data.streamed>;
+
 	let { data } = $props() as PageProps;
+
+	let resolved = $state<StreamedData | null>(null);
+	let loadError = $state<Error | null>(null);
 
 	let accuracyThreshold = $state(0.95);
 	let newMapsSortBy = $state<'weightedDelta' | 'stars' | 'name'>('weightedDelta');
 	let improvableSortBy = $state<'weightedDelta' | 'accuracy' | 'stars' | 'name'>('weightedDelta');
 
-	const r = $derived(classifyMaps(data.scores, data.rankedMaps, data.platform, accuracyThreshold));
+	$effect(() => {
+		resolved = null;
+		loadError = null;
+		data.streamed
+			.then((d) => {
+				resolved = d;
+				addHistoryEntry({
+					feature: 'pp-improver',
+					playerId: data.playerId,
+					playerName: d.playerName,
+				});
+			})
+			.catch((e: Error) => (loadError = e));
+	});
 
-	const sortedNewMaps = $derived(sortNewMaps(r.newMaps, newMapsSortBy));
-	const sortedImprovableMaps = $derived(sortImprovableMaps(r.improvableMaps, improvableSortBy));
+	const r = $derived(
+		resolved
+			? classifyMaps(resolved.scores, resolved.rankedMaps, data.platform, accuracyThreshold)
+			: null
+	);
+
+	const sortedNewMaps = $derived(r ? sortNewMaps(r.newMaps, newMapsSortBy) : []);
+	const sortedImprovableMaps = $derived(
+		r ? sortImprovableMaps(r.improvableMaps, improvableSortBy) : []
+	);
 
 	function sortNewMaps(maps: NewMap[], by: typeof newMapsSortBy): NewMap[] {
 		if (by === 'stars') return [...maps].sort((a, b) => b.stars - a.stars);
 		if (by === 'name') return [...maps].sort((a, b) => a.songName.localeCompare(b.songName));
-		return maps; // 'weightedDelta' — already sorted by classifyMaps
+		return maps;
 	}
 
 	function sortImprovableMaps(maps: ImprovableMap[], by: typeof improvableSortBy): ImprovableMap[] {
 		if (by === 'accuracy') return [...maps].sort((a, b) => a.currentAccuracy - b.currentAccuracy);
 		if (by === 'stars') return [...maps].sort((a, b) => b.stars - a.stars);
 		if (by === 'name') return [...maps].sort((a, b) => a.songName.localeCompare(b.songName));
-		return maps; // 'weightedDelta'
+		return maps;
 	}
 
 	function downloadSection(maps: (NewMap | ImprovableMap)[], title: string) {
@@ -43,82 +70,88 @@
 	}
 </script>
 
-<PlayerHeader
-	players={[
-		{
-			id: data.playerId,
-			name: data.playerName,
-			avatar: data.playerAvatar,
-			skillRange: data.skillRange ?? undefined,
-		},
-	]}
-	platform={data.platformLabel}
-/>
-
-<div class="controls">
-	<button type="button" class="new-search" onclick={() => goto(resolve('/'))}>
-		← New Search
-	</button>
-	<SortSelect
-		bind:value={newMapsSortBy}
-		options={[
-			{ value: 'weightedDelta', label: 'Weighted PP gain' },
-			{ value: 'stars', label: 'Stars' },
-			{ value: 'name', label: 'Song name' },
+{#if loadError}
+	<p class="error">Failed to load: {loadError.message}</p>
+{:else if resolved === null}
+	<p class="loading">Loading…</p>
+{:else}
+	<PlayerHeader
+		players={[
+			{
+				id: data.playerId,
+				name: resolved.playerName,
+				avatar: resolved.playerAvatar,
+				skillRange: resolved.skillRange ?? undefined,
+			},
 		]}
-	/>
-</div>
-
-<div class="sections">
-	<SectionCard
-		title="New Maps"
-		subtitle="Never played (above {(accuracyThreshold * 100).toFixed(0)}% threshold)"
-		maps={sortedNewMaps}
-		mode="new"
-		onDownload={() => downloadSection(sortedNewMaps, 'New Maps')}
+		platform={data.platformLabel}
 	/>
 
-	<div class="section-controls">
+	<div class="controls">
+		<button type="button" class="new-search" onclick={() => goto(resolve('/'))}>
+			← New Search
+		</button>
 		<SortSelect
-			bind:value={improvableSortBy}
+			bind:value={newMapsSortBy}
 			options={[
 				{ value: 'weightedDelta', label: 'Weighted PP gain' },
-				{ value: 'accuracy', label: 'Current accuracy' },
 				{ value: 'stars', label: 'Stars' },
 				{ value: 'name', label: 'Song name' },
 			]}
 		/>
-		<SettingsDialog title="Settings">
-			{#snippet content()}
-				<RangeInput
-					label="Accuracy threshold: {(accuracyThreshold * 100).toFixed(0)}%"
-					id="acc-threshold"
-					bind:value={accuracyThreshold}
-					min={0.8}
-					max={0.99}
-					step={0.01}
-				/>
-			{/snippet}
-		</SettingsDialog>
 	</div>
 
-	<SectionCard
-		title="Improvable Maps"
-		subtitle="Below {(accuracyThreshold * 100).toFixed(0)}% accuracy"
-		maps={sortedImprovableMaps}
-		mode="improvable"
-		onDownload={() => downloadSection(sortedImprovableMaps, 'Improvable Maps')}
-	/>
-</div>
+	<div class="sections">
+		<SectionCard
+			title="New Maps"
+			subtitle="Never played (above {(accuracyThreshold * 100).toFixed(0)}% threshold)"
+			maps={sortedNewMaps}
+			mode="new"
+			onDownload={() => downloadSection(sortedNewMaps, 'New Maps')}
+		/>
 
-<CtaButton
-	onclick={() => {
-		const all = [...sortedNewMaps, ...sortedImprovableMaps];
-		downloadBplist(rankedMapsToBplist(all, 'PP Improvement'));
-	}}
->
-	↓ Download Full Playlist ({sortedNewMaps.length + sortedImprovableMaps.length} maps)
-</CtaButton>
+		<div class="section-controls">
+			<SortSelect
+				bind:value={improvableSortBy}
+				options={[
+					{ value: 'weightedDelta', label: 'Weighted PP gain' },
+					{ value: 'accuracy', label: 'Current accuracy' },
+					{ value: 'stars', label: 'Stars' },
+					{ value: 'name', label: 'Song name' },
+				]}
+			/>
+			<SettingsDialog title="Settings">
+				{#snippet content()}
+					<RangeInput
+						label="Accuracy threshold: {(accuracyThreshold * 100).toFixed(0)}%"
+						id="acc-threshold"
+						bind:value={accuracyThreshold}
+						min={0.8}
+						max={0.99}
+						step={0.01}
+					/>
+				{/snippet}
+			</SettingsDialog>
+		</div>
+
+		<SectionCard
+			title="Improvable Maps"
+			subtitle="Below {(accuracyThreshold * 100).toFixed(0)}% accuracy"
+			maps={sortedImprovableMaps}
+			mode="improvable"
+			onDownload={() => downloadSection(sortedImprovableMaps, 'Improvable Maps')}
+		/>
+	</div>
+
+	<CtaButton
+		onclick={() => {
+			const all = [...sortedNewMaps, ...sortedImprovableMaps];
+			downloadBplist(rankedMapsToBplist(all, 'PP Improvement'));
+		}}
+	>
+		↓ Download Full Playlist ({sortedNewMaps.length + sortedImprovableMaps.length} maps)
+	</CtaButton>
+{/if}
 
 <style>
 	.controls {
@@ -154,5 +187,15 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-md);
+	}
+
+	.loading {
+		color: var(--color-text-muted);
+		font-size: 13px;
+	}
+
+	.error {
+		color: var(--color-error, red);
+		font-size: 13px;
 	}
 </style>

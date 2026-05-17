@@ -1,25 +1,13 @@
-import { asset } from '$app/paths';
-
+import blMaps from '../../../static/data/bl-maps.json';
+import ssMaps from '../../../static/data/ss-maps.json';
 import type { RankedMap } from '../types';
 import { Platform } from '../types';
 
-const DATA_URL: Record<Platform, string> = {
-	[Platform.ScoreSaber]: asset('/data/ss-maps.json'),
-	[Platform.BeatLeader]: asset('/data/bl-maps.json'),
+const DATA: Record<Platform, RankedMap[]> = {
+	[Platform.ScoreSaber]: ssMaps as RankedMap[],
+	[Platform.BeatLeader]: blMaps as RankedMap[],
 };
 
-const cache = new Map<Platform, RankedMap[]>();
-
-export async function getRankedMaps(
-	platform: Platform,
-	kitFetch: typeof fetch = fetch
-): Promise<RankedMap[]> {
-	if (cache.has(platform)) {
-		return cache.get(platform)!;
-	}
-
-	const res = await kitFetch(DATA_URL[platform]);
-	const maps: RankedMap[] = await res.json();
-	cache.set(platform, maps);
-	return maps;
+export function getRankedMaps(platform: Platform): RankedMap[] {
+	return DATA[platform];
 }

@@ -16,19 +16,10 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
+  update-maps:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -55,13 +46,3 @@ jobs:
           git add static/data/ss-maps.json static/data/bl-maps.json
           git diff --cached --quiet || git commit -m "chore: update ranked map snapshots"
           git push
-
-      - name: Build
-        run: npm run build
-
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: build
-
-      - uses: actions/deploy-pages@v4
-        id: deployment

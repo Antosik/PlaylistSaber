@@ -1,125 +1,33 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 import { Platform } from '../types';
 
-beforeEach(() => {
-	vi.resetModules();
-	vi.restoreAllMocks();
-});
+import { getRankedMaps } from './maps-cache';
 
 describe('getRankedMaps', () => {
-	it('fetches the correct JSON URL for ScoreSaber', async () => {
-		const mockMaps = [
-			{
-				id: 'abc1',
-				songHash: 'abc',
-				songName: 'Test',
-				artist: 'A',
-				difficulty: 'Expert',
-				stars: 5,
-				pp: 200,
-			},
-		];
-		const fetchMock = vi.fn().mockResolvedValue({
-			ok: true,
-			json: () => Promise.resolve(mockMaps),
-		});
-		vi.stubGlobal('fetch', fetchMock);
-
-		const { getRankedMaps } = await import('./maps-cache.ts');
-		const result = await getRankedMaps(Platform.ScoreSaber);
-
-		expect(fetchMock).toHaveBeenCalledWith('/data/ss-maps.json');
-		expect(result).toEqual(mockMaps);
+	it('returns a non-empty array for ScoreSaber', () => {
+		const result = getRankedMaps(Platform.ScoreSaber);
+		expect(Array.isArray(result)).toBe(true);
+		expect(result.length).toBeGreaterThan(0);
 	});
 
-	it('fetches the correct JSON URL for BeatLeader', async () => {
-		const mockMaps = [
-			{
-				id: 'def1',
-				songHash: 'def',
-				songName: 'Other',
-				artist: 'B',
-				difficulty: 'ExpertPlus',
-				stars: 8,
-				pp: 400,
-			},
-		];
-		vi.stubGlobal(
-			'fetch',
-			vi.fn().mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve(mockMaps),
-			})
-		);
-
-		const { getRankedMaps } = await import('./maps-cache.ts');
-		const result = await getRankedMaps(Platform.BeatLeader);
-
-		expect(fetch).toHaveBeenCalledWith('/data/bl-maps.json');
-		expect(result).toEqual(mockMaps);
+	it('returns a non-empty array for BeatLeader', () => {
+		const result = getRankedMaps(Platform.BeatLeader);
+		expect(Array.isArray(result)).toBe(true);
+		expect(result.length).toBeGreaterThan(0);
 	});
 
-	it('returns cached result on second call without fetching again', async () => {
-		const mockMaps = [
-			{
-				id: 'abc1',
-				songHash: 'abc',
-				songName: 'Test',
-				artist: 'A',
-				difficulty: 'Expert',
-				stars: 5,
-				pp: 200,
-			},
-		];
-		const fetchMock = vi.fn().mockResolvedValue({
-			ok: true,
-			json: () => Promise.resolve(mockMaps),
-		});
-		vi.stubGlobal('fetch', fetchMock);
-
-		const { getRankedMaps } = await import('./maps-cache.ts');
-		await getRankedMaps(Platform.ScoreSaber);
-		await getRankedMaps(Platform.ScoreSaber);
-
-		expect(fetchMock).toHaveBeenCalledTimes(1);
+	it('returns different data for different platforms', () => {
+		const ss = getRankedMaps(Platform.ScoreSaber);
+		const bl = getRankedMaps(Platform.BeatLeader);
+		expect(ss).not.toBe(bl);
 	});
 
-	it('caches ScoreSaber and BeatLeader independently', async () => {
-		const ssMaps = [
-			{
-				id: 'ss1',
-				songHash: 'ss',
-				songName: 'SS Song',
-				artist: 'A',
-				difficulty: 'Expert',
-				stars: 5,
-				pp: 200,
-			},
-		];
-		const blMaps = [
-			{
-				id: 'bl1',
-				songHash: 'bl',
-				songName: 'BL Song',
-				artist: 'B',
-				difficulty: 'ExpertPlus',
-				stars: 8,
-				pp: 400,
-			},
-		];
-		const fetchMock = vi
-			.fn()
-			.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(ssMaps) })
-			.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(blMaps) });
-		vi.stubGlobal('fetch', fetchMock);
-
-		const { getRankedMaps } = await import('./maps-cache.ts');
-		const ss = await getRankedMaps(Platform.ScoreSaber);
-		const bl = await getRankedMaps(Platform.BeatLeader);
-
-		expect(ss).toEqual(ssMaps);
-		expect(bl).toEqual(blMaps);
-		expect(fetchMock).toHaveBeenCalledTimes(2);
+	it('each map has required fields', () => {
+		const map = getRankedMaps(Platform.ScoreSaber)[0];
+		expect(map).toHaveProperty('songHash');
+		expect(map).toHaveProperty('songName');
+		expect(map).toHaveProperty('stars');
+		expect(map).toHaveProperty('pp');
 	});
 });

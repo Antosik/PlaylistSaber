@@ -6,7 +6,7 @@ import { fetchPagesConcurrentLimited } from '../utils';
 import type { SsPlayerInfo, SsPlayerScore } from './types';
 import { diffName } from './utils';
 
-const api = ky.extend({ prefix: 'https://scoresaber.com/api', retry: 2, timeout: 10000, fetch });
+const api = ky.extend({ prefix: 'https://scoresaber.com/api', retry: 2, timeout: false });
 
 export async function getSsPlayer(id: string): Promise<SsPlayerInfo> {
 	const data = await api

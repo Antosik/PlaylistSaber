@@ -8,7 +8,7 @@ export function getPlatformApi(platform: Platform) {
 	return {
 		getPlayer: platform === Platform.ScoreSaber ? getSsPlayer : getBlPlayer,
 		getScores: platform === Platform.ScoreSaber ? getSsPlayerScores : getBlPlayerScores,
-		getRankedMaps: (kitFetch?: typeof fetch) => getRankedMaps(platform, kitFetch ?? fetch),
+		getRankedMaps: () => getRankedMaps(platform),
 		label: platform === Platform.ScoreSaber ? 'ScoreSaber' : 'BeatLeader',
 	};
 }

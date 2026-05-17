@@ -5,7 +5,7 @@ import { fetchPagesConcurrentLimited } from '../utils';
 
 import type { BlPlayerInfo, BlPlayerScore } from './types';
 
-const api = ky.extend({ prefix: 'https://api.beatleader.xyz', retry: 2, timeout: 10000, fetch });
+const api = ky.extend({ prefix: 'https://api.beatleader.xyz', retry: 2, timeout: false });
 
 export async function getBlPlayer(id: string): Promise<BlPlayerInfo> {
 	const data = await api
